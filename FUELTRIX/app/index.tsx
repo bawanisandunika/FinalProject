@@ -1,6 +1,12 @@
 import { Text, View } from "react-native";
-
+import { useFonts } from "expo-font";
 export default function Index() {
+
+  const [loaded, error] = useFonts({
+    'Google': require('../assets/fonts/Outfit-Regular.ttf'),
+  });
+
+
   return (
     <View
       style={{
@@ -9,7 +15,7 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
+      <Text style={{fontFamily:'Google'}}>Edit app/index.tsx to edit this screen.</Text>
     </View>
   );
 }
