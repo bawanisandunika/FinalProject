@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { useNavigation } from '@react-navigation/native'; // Import navigation
 
 export default function WelcomeScreen() {
+  const navigation = useNavigation(); // Initialize navigation
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.5));
   const [buttonAnim] = useState(new Animated.Value(50)); // Animation for buttons
@@ -42,10 +44,10 @@ export default function WelcomeScreen() {
 
       {/* Animated buttons */}
       <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
           <Text style={styles.buttonText}>Continue as Driver</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
           <Text style={styles.buttonText}>Continue as Pump Assistant</Text>
         </TouchableOpacity>
       </Animated.View>
@@ -67,14 +69,14 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 36,
     fontFamily: 'Google-Bold',
-    color: '#030E25', 
+    color: '#030E25',
     marginTop: 30,
   },
   tagline: {
     fontSize: 18,
-    color: '#030E25', 
+    color: '#030E25',
     fontFamily: 'Google',
-    marginBottom:60
+    marginBottom: 60,
   },
   buttonsContainer: {
     position: 'absolute',
@@ -96,6 +98,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF', // White text for contrast
     fontSize: 18,
-    fontFamily:'Google-Bold',
+    fontFamily: 'Google-Bold',
   },
 });
