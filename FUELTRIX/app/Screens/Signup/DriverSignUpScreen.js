@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Animated, TouchableOpacity, Alert } from 'react-native';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { ScrollView } from 'react-native';
 
 export default function DriverSignupScreen() {
   const [companyId, setCompanyId] = useState('');
@@ -19,7 +20,7 @@ export default function DriverSignupScreen() {
 
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.5));
-  const [buttonAnim] = useState(new Animated.Value(50)); // Animation for buttons
+  const [buttonAnim] = useState(new Animated.Value(50)); 
 
   useEffect(() => {
     // Start animations
@@ -99,10 +100,10 @@ export default function DriverSignupScreen() {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.logoContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-        <FontAwesome5 name="gas-pump" size={100} color="#030E25" />
+       
         <Text style={styles.appName}>FuelTrix</Text>
       </Animated.View>
-
+      <ScrollView>
       <View style={styles.formContainer}>
         <TextInput
           style={styles.input}
@@ -169,7 +170,7 @@ export default function DriverSignupScreen() {
           autoCapitalize="none"
         />
         {confirmPasswordError ? <Text style={styles.errorText}>{confirmPasswordError}</Text> : null}
-
+       
         {/* Animated signup button */}
         <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
           <TouchableOpacity style={styles.button} onPress={handleSignup}>
@@ -191,7 +192,8 @@ export default function DriverSignupScreen() {
           </View>
         </View>
       </View>
-    </View>
+      </ScrollView>
+      </View>
   );
 }
 
@@ -202,39 +204,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
+  
   appName: {
     fontSize: 32,
     fontFamily: 'Google-Bold',
     color: '#030E25',
-    marginTop: 20,
+    marginTop: 50,
+    marginBottom:30
   },
   formContainer: {
-    width: '100%',
-    paddingHorizontal: 30,
+    
+    paddingHorizontal: 5,
   },
   input: {
     borderColor: '#030E25',
     borderWidth: 1,
     borderRadius: 25,
-    paddingVertical: 12,
+    paddingVertical: 5,
     paddingHorizontal: 20,
     marginVertical: 10,
     fontSize: 16,
     fontFamily: 'Google',
     color: '#030E25',
-    width: '100%',
+    width: 300,
   },
   errorText: {
     color: 'red',
-    marginBottom: 10,
+    marginBottom: 5,
     marginLeft: 10,
+    fontSize:9
   },
   buttonsContainer: {
-    marginTop: 20,
+    marginTop: 50,
     width: '100%',
     alignItems: 'center',
   },

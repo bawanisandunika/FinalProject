@@ -89,13 +89,13 @@ export default function LoginScreen() {
           autoCapitalize="none"
         />
         {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
-
-        <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Login</Text>
-          </TouchableOpacity>
-        </Animated.View>
       </View>
+
+      <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
@@ -120,37 +120,45 @@ const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
     paddingHorizontal: 30,
+    marginVertical: 30,
   },
   input: {
+    backgroundColor: '#F5F5F5',
     borderColor: '#030E25',
     borderWidth: 1,
-    borderRadius: 25,
-    paddingVertical: 12,
+    borderRadius: 30,
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    marginVertical: 10,
+    marginBottom: 20,
     fontSize: 16,
-    fontFamily: 'Google',
     color: '#030E25',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   errorText: {
     color: 'red',
     fontSize: 14,
+    marginBottom: 10,
   },
   buttonsContainer: {
-    position: 'absolute',
-    bottom: '10%',
     width: '100%',
     paddingHorizontal: 20,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   button: {
     backgroundColor: '#030E25',
     paddingVertical: 15,
-    paddingHorizontal: 10,
+    paddingHorizontal: 100,
     borderRadius: 50,
-    width: '100%',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   buttonText: {
     color: '#FFFFFF',
