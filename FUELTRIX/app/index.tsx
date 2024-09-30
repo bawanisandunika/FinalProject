@@ -1,6 +1,8 @@
 import { Text, View } from "react-native";
 import { useFonts } from "expo-font";
 import WelcomePage from "./Screens/WelcomeScreen"
+import LoginScreen from "./Screens/LoginScreen"
+import DriverSignUpScreen from "./Screens/Signup/DriverSignUpScreen"
 export default function Index() {
 
   const [fontsLoaded] = useFonts({
@@ -16,7 +18,8 @@ export default function Index() {
     <View
       style={{flex:1}}
     >
-      <WelcomePage/>
+      <DriverSignUpScreen/>
+      
     </View>
   );
 }
