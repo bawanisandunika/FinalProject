@@ -3,6 +3,8 @@ import { useFonts } from "expo-font";
 import WelcomePage from "./Screens/WelcomeScreen"
 import LoginScreen from "./Screens/LoginScreen"
 import DriverSignUpScreen from "./Screens/Signup/DriverSignUpScreen"
+import PumpAssistantSignUpScreen from "./Screens/Signup/PumpAssistantSignUpScreen"
+import ScanQrScreen from "./Screens/ScanQrScreen"
 export default function Index() {
 
   const [fontsLoaded] = useFonts({
@@ -18,7 +20,7 @@ export default function Index() {
     <View
       style={{flex:1}}
     >
-      <DriverSignUpScreen/>
+      <ScanQrScreen/>
       
     </View>
   );
