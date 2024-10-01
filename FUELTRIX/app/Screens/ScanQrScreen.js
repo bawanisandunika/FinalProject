@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 
-export default function ScanQrScreen({ navigation }) {
+export default function ScanQrScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [showScanner, setShowScanner] = useState(false); // Initially, the scanner is hidden
@@ -28,11 +28,6 @@ export default function ScanQrScreen({ navigation }) {
     Alert.alert(`QR Code Scanned!`, `Data: ${data}`);
   };
 
-  // Handle "Exit" button press to navigate to welcome page
-  const handleExitPress = () => {
-    navigation.navigate('Welcome'); // Assuming 'Welcome' is the name of your welcome screen in the navigator
-  };
-
   if (hasPermission === null) {
     return <Text>Requesting camera permission...</Text>;
   }
@@ -50,13 +45,6 @@ export default function ScanQrScreen({ navigation }) {
             onPress={() => setShowScanner(true)}
           >
             <Text style={styles.scanButtonText}>Scan Here</Text>
-          </TouchableOpacity>
-          {/* Exit button to go back to the welcome screen */}
-          <TouchableOpacity
-            style={styles.exitButton}
-            onPress={handleExitPress}
-          >
-            <Text style={styles.exitButtonText}>Exit</Text>
           </TouchableOpacity>
         </Animated.View>
       ) : (
@@ -95,19 +83,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 50,
     borderRadius: 10,
-    marginBottom: 20, // Added margin for spacing between buttons
   },
   scanButtonText: {
-    color: '#fff',
-    fontSize: 18,
-  },
-  exitButton: {
-    backgroundColor: '#d9534f', // Red color for the exit button
-    paddingVertical: 15,
-    paddingHorizontal: 50,
-    borderRadius: 10,
-  },
-  exitButtonText: {
     color: '#fff',
     fontSize: 18,
   },
