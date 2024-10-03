@@ -8,6 +8,7 @@ import ScanQrScreen from "./Screens/ScanQrScreen"
 import DriverQrScanScreen from "./Screens/DriverQrScanScreen"
 import DriverHomePageScreen from "./Screens/DriverHomePageScreen"
 import DriverDashboardScreen from "./Screens/DriverDashboardScreen"
+import EmergancyContact from "./Screens/EmergancyContact"
 export default function Index() {
 
   const [fontsLoaded] = useFonts({
@@ -23,7 +24,7 @@ export default function Index() {
     <View
       style={{flex:1}}
     >
-      <DriverDashboardScreen/>
+      <EmergancyContact/>
       
     </View>
   );
