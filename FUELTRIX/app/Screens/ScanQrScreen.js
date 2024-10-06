@@ -1,43 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 
 export default function ScanQrScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [animationValue] = useState(new Animated.Value(1)); // For button scaling
-  const [scannerActive, setScannerActive] = useState(false); // To toggle QR scanner view
+  const [showScanner, setShowScanner] = useState(false); // Initially, the scanner is hidden
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial opacity for animation
 
-  // Request camera permission on mount
+  // Request camera permission when the component loads
   useEffect(() => {
-    const getBarCodeScannerPermissions = async () => {
+    (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
-    };
+    })();
 
-    getBarCodeScannerPermissions();
+    // Fade in the button on load
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
-  // Handle QR code scanning
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
-    Alert.alert('Scanned!', `QR code with type ${type} and data ${data} has been scanned!`);
-  };
-
-  // Handle button press animation and scanner activation
-  const handlePress = () => {
-    Animated.timing(animationValue, {
-      toValue: 0.9, // Scale down the button
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      Animated.timing(animationValue, {
-        toValue: 1, // Scale back to original size
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-      setScannerActive(true); // Activate the QR scanner
-    });
+    Alert.alert(`QR Code Scanned!`, `Data: ${data}`);
   };
 
   if (hasPermission === null) {
@@ -50,23 +38,27 @@ export default function ScanQrScreen() {
 
   return (
     <View style={styles.container}>
-      {!scannerActive ? (
-        // Show "Scan Here" button when scanner is not active
-        <Animated.View style={{ transform: [{ scale: animationValue }] }}>
-          <TouchableOpacity style={styles.scanButton} onPress={handlePress} activeOpacity={0.8}>
+      {!showScanner ? (
+        <Animated.View style={[styles.scanButtonContainer, { opacity: fadeAnim }]}>
+          <TouchableOpacity
+            style={styles.scanButton}
+            onPress={() => setShowScanner(true)}
+          >
             <Text style={styles.scanButtonText}>Scan Here</Text>
           </TouchableOpacity>
         </Animated.View>
       ) : (
-        // Show QR scanner once the button is pressed
         <View style={styles.scannerContainer}>
           <BarCodeScanner
             onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
             style={StyleSheet.absoluteFillObject}
           />
           {scanned && (
-            <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}>
-              <Text style={styles.buttonText}>Tap to Scan Again</Text>
+            <TouchableOpacity
+              style={styles.rescanButton}
+              onPress={() => setScanned(false)}
+            >
+              <Text style={styles.rescanText}>Tap to Scan Again</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -80,37 +72,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#003366', // Petrol blue theme for petrol shed feel
+    backgroundColor: '#fff',
   },
-  scanButton: {
-    backgroundColor: '#FFD700', // Bright yellow like petrol pump
-    padding: 20,
-    borderRadius: 50,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  scanButtonText: {
-    color: '#003366', // Petrol blue text
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  scannerContainer: {
-    flex: 1,
+  scanButtonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  button: {
-    position: 'absolute',
-    bottom: 30,
-    backgroundColor: '#FFD700',
-    padding: 10,
+  scanButton: {
+    backgroundColor: '#1c6ef2',
+    paddingVertical: 15,
+    paddingHorizontal: 50,
     borderRadius: 10,
   },
-  buttonText: {
-    color: '#003366',
-    fontWeight: 'bold',
+  scanButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+  scannerContainer: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rescanButton: {
+    position: 'absolute',
+    bottom: 50,
+    backgroundColor: '#1c6ef2',
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+  rescanText: {
+    color: '#fff',
+    fontSize: 18,
   },
 });

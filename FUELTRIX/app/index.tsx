@@ -5,6 +5,10 @@ import LoginScreen from "./Screens/LoginScreen"
 import DriverSignUpScreen from "./Screens/Signup/DriverSignUpScreen"
 import PumpAssistantSignUpScreen from "./Screens/Signup/PumpAssistantSignUpScreen"
 import ScanQrScreen from "./Screens/ScanQrScreen"
+import DriverQrScanScreen from "./Screens/DriverQrScanScreen"
+import DriverHomePageScreen from "./Screens/DriverHomePageScreen"
+import DriverDashboardScreen from "./Screens/DriverDashboardScreen"
+import EmergancyContact from "./Screens/EmergancyContact"
 export default function Index() {
 
   const [fontsLoaded] = useFonts({
@@ -20,7 +24,7 @@ export default function Index() {
     <View
       style={{flex:1}}
     >
-      <ScanQrScreen/>
+      <EmergancyContact/>
       
     </View>
   );

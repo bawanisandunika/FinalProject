@@ -278,3 +278,4 @@ const styles = StyleSheet.create({
     color: '#030E25',
   },
 });
+//Scan
