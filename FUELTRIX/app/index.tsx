@@ -20,7 +20,7 @@ export default function Index() {
     <View
       style={{flex:1}}
     >
-      <PumpAssistantSignUpScreen/>
+      <ScanQrScreen/>
       
     </View>
   );
