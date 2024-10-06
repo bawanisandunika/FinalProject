@@ -13,6 +13,7 @@ export default function DriverHomePageScreen() {
       duration: 1000,
       useNativeDriver: true,
     }).start();
+    
   }, []);
 
   return (
