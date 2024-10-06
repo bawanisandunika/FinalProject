@@ -44,7 +44,7 @@ export default function PumpAssistantSignUpScreen() {
     setConfirmPasswordError('');
 
     if (!district) {
-      setDistrictError('District is required');
+      setDistrictError('Shed name is required');
       valid = false;
     }
 
@@ -97,14 +97,14 @@ export default function PumpAssistantSignUpScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.formContainer}>
         {/* District (Combo Box) */}
-        <Text style={styles.label}>Select District</Text>
+        <Text style={styles.label}>Select Shed</Text>
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={district}
             onValueChange={(itemValue) => setDistrict(itemValue)}
             style={styles.picker}
           >
-            <Picker.Item label="Select District" value="" />
+            <Picker.Item label="Select Shed Name" value="" />
             {districts.map((district, index) => (
               <Picker.Item key={index} label={district} value={district} />
             ))}
@@ -112,17 +112,7 @@ export default function PumpAssistantSignUpScreen() {
         </View>
         {districtError ? <Text style={styles.errorText}>{districtError}</Text> : null}
 
-        {/* Shed ID */}
-        <TextInput
-          style={styles.input}
-          placeholder="Shed ID"
-          placeholderTextColor="#aaa"
-          value={shedId}
-          onChangeText={(text) => setShedId(text)}
-          onBlur={() => !shedId && setShedIdError('Shed ID is required')}
-        />
-        {shedIdError ? <Text style={styles.errorText}>{shedIdError}</Text> : null}
-
+      
         {/* Security Code */}
         <TextInput
           style={styles.input}
