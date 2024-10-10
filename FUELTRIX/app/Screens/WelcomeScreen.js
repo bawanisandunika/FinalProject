@@ -44,10 +44,10 @@ export default function WelcomeScreen() {
 
       {/* Animated buttons */}
       <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('DriverLogin')}>
           <Text style={styles.buttonText}>Continue as Driver</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PumpLogin')}>
           <Text style={styles.buttonText}>Continue as Pump Assistant</Text>
         </TouchableOpacity>
       </Animated.View>

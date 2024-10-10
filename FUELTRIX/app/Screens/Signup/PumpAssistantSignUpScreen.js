@@ -33,7 +33,6 @@ export default function PumpAssistantSignUpScreen() {
   const validateFields = () => {
     let valid = true;
 
-    // Reset all errors
     setDistrictError('');
     setShedIdError('');
     setSecurityCodeError('');

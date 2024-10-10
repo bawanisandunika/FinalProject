@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Animated, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { useNavigation } from '@react-navigation/native';
 
-export default function LoginScreen() {
+export default function DriverLoginScreen() {
+  const navigation = useNavigation(); // Move useNavigation inside the component
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.5));
   const [buttonAnim] = useState(new Animated.Value(50));
@@ -33,29 +33,8 @@ export default function LoginScreen() {
     ]).start();
   }, []);
 
-  const validateEmail = () => {
-    const emailRegex = /\S+@\S+\.\S+/;
-    if (!emailRegex.test(email)) {
-      setEmailError('Please enter a valid email.');
-      return false;
-    }
-    setEmailError('');
-    return true;
-  };
-
-  const validatePassword = () => {
-    if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters.');
-      return false;
-    }
-    setPasswordError('');
-    return true;
-  };
-
   const handleLogin = () => {
-    if (validateEmail() && validatePassword()) {
-      Alert.alert('Login Successful', 'Welcome back!');
-    }
+    navigation.navigate('DriverHome');
   };
 
   return (
@@ -72,23 +51,18 @@ export default function LoginScreen() {
           placeholderTextColor="#aaa"
           value={email}
           onChangeText={setEmail}
-          onBlur={validateEmail}
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
-
         <TextInput
           style={styles.input}
           placeholder="Password"
           placeholderTextColor="#aaa"
           value={password}
           onChangeText={setPassword}
-          onBlur={validatePassword}
           secureTextEntry
           autoCapitalize="none"
         />
-        {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
       </View>
 
       <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
@@ -137,11 +111,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 14,
-    marginBottom: 10,
   },
   buttonsContainer: {
     width: '100%',

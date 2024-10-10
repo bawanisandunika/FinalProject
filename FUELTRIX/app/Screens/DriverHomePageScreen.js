@@ -26,14 +26,14 @@ export default function DriverHomePageScreen() {
       <Animated.View style={[styles.buttonContainer, { opacity: fadeAnim }]}>
         <TouchableOpacity
           style={styles.scanButton}
-          onPress={() => navigation.navigate('ScanVehicleQrScreen')} // Navigates to the Scan Vehicle QR screen
+          onPress={() => navigation.navigate('DriverQr')} // Navigates to the Scan Vehicle QR screen
         >
           <Text style={styles.buttonText}>Scan Vehicle QR</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.dashboardButton}
-          onPress={() => navigation.navigate('DriverDashboardScreen')} // Navigates to the Driver Dashboard screen
+          onPress={() => navigation.navigate('DriverDashboard')}
         >
           <Text style={styles.buttonText}>Dashboard</Text>
         </TouchableOpacity>
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanButton: {
-    backgroundColor: '#1c6ef2',
+    backgroundColor: '#030E25',
     paddingVertical: 15,
     paddingHorizontal: 70,
     borderRadius: 30,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   dashboardButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#999',
     paddingVertical: 15,
     paddingHorizontal: 70,
     borderRadius: 30,
@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'Google-Bold',
+  
   },
 });
