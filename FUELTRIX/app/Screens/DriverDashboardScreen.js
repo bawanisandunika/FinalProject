@@ -4,9 +4,9 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import DistanceMap from './DrawerScreens/DistanceMap';
 import FuelUsageScreen from './DrawerScreens/FuelUsageScreen';
-import RequestFuel from './DrawerScreens/RequestFuel';
 import AddComplain from './DrawerScreens/AddComplain'
-
+import TopTabFuel from './DrawerScreens/TopTabFuel'
+import TopTabComplain from './DrawerScreens/toptabComplain';
 
 // Create Drawer Navigator
 const Drawer = createDrawerNavigator();
@@ -27,8 +27,8 @@ export default function DriverDashboardScreen() {
       >
         <Drawer.Screen name="Distance Map" component={DistanceMap}/>
         <Drawer.Screen name="Fuel Usage" component={FuelUsageScreen} />
-        <Drawer.Screen name="Fuel Requests" component={RequestFuel} />
-        <Drawer.Screen name="Complains" component={AddComplain} />
+        <Drawer.Screen name="Fuel Requests" component={TopTabFuel} />
+        <Drawer.Screen name="Complains" component={TopTabComplain} />
       </Drawer.Navigator>
     </NavigationContainer>
   );
