@@ -20,7 +20,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff",
-        "permissions": ["ACCESS_FINE_LOCATION"],
+        "permissions": ["ACCESS_FINE_LOCATION"]
       }
     },
     "web": {
