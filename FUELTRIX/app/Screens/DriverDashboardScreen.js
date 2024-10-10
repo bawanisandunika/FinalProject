@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 
-// Create Tab navigator
-const Tab = createMaterialTopTabNavigator();
+// Create Drawer Navigator
+const Drawer = createDrawerNavigator();
 
 // View Fuel Usage History screen
 function FuelUsageHistoryScreen() {
@@ -16,7 +16,6 @@ function FuelUsageHistoryScreen() {
   );
 }
 
-// Remaining Fuel Limit screen
 function RemainingFuelLimitScreen() {
   return (
     <View style={styles.tabContainer}>
@@ -26,7 +25,6 @@ function RemainingFuelLimitScreen() {
   );
 }
 
-// Send Complaint screen
 function SendComplaintScreen() {
   return (
     <View style={styles.tabContainer}>
@@ -37,7 +35,6 @@ function SendComplaintScreen() {
   );
 }
 
-// Review Complaint Status screen
 function ReviewComplaintStatusScreen() {
   return (
     <View style={styles.tabContainer}>
@@ -47,24 +44,23 @@ function ReviewComplaintStatusScreen() {
   );
 }
 
-// Main DriverDashboardScreen using Tab navigator
+// Main Driver Dashboard Screen using Drawer
 export default function DriverDashboardScreen() {
   return (
     <NavigationContainer independent={true}>
-      <Tab.Navigator
+      <Drawer.Navigator
+        initialRouteName="FuelUsageHistory"
         screenOptions={{
-          tabBarLabelStyle: { fontSize: 12, fontWeight: 'bold' },
-          tabBarStyle: { backgroundColor: '#1c6ef2' },
-          tabBarActiveTintColor: '#fff',
-          tabBarInactiveTintColor: '#dcdcdc',
-          tabBarIndicatorStyle: { backgroundColor: '#fff' },
+          drawerLabelStyle: { fontSize: 15, fontWeight: 'bold' },
+          drawerActiveTintColor: '#030E25',
+          drawerInactiveTintColor: '#888',
         }}
       >
-        <Tab.Screen name="Fuel Usage History" component={FuelUsageHistoryScreen} />
-        <Tab.Screen name="Remaining Fuel Limit" component={RemainingFuelLimitScreen} />
-        <Tab.Screen name="Send Complaint" component={SendComplaintScreen} />
-        <Tab.Screen name="Review Complaint Status" component={ReviewComplaintStatusScreen} />
-      </Tab.Navigator>
+        <Drawer.Screen name="Fuel Usage History" component={FuelUsageHistoryScreen} />
+        <Drawer.Screen name="Remaining Fuel Limit" component={RemainingFuelLimitScreen} />
+        <Drawer.Screen name="Send Complaint" component={SendComplaintScreen} />
+        <Drawer.Screen name="Review Complaint Status" component={ReviewComplaintStatusScreen} />
+      </Drawer.Navigator>
     </NavigationContainer>
   );
 }
@@ -79,6 +75,6 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1c6ef2',
+    color: '#030E25',
   },
 });
