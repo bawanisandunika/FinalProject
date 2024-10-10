@@ -18,7 +18,7 @@ const Stack = createStackNavigator()
 export default function MainNavigation() {
   return (
    
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator initialRouteName="Home" screenOptions={{headerShown:false}}>
       <Stack.Screen name="Home" component={WelcomeScreen} />
       <Stack.Screen name="PumpLogin" component={PumpLoginScreen} />
       <Stack.Screen name="DriverLogin" component={DriverLoginScreen} />

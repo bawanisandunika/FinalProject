@@ -2,64 +2,33 @@ import React from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
+import DistanceMap from './DrawerScreens/DistanceMap';
+import FuelUsageScreen from './DrawerScreens/FuelUsageScreen';
+import RequestFuel from './DrawerScreens/RequestFuel';
+import AddComplain from './DrawerScreens/AddComplain'
+
 
 // Create Drawer Navigator
 const Drawer = createDrawerNavigator();
 
-// View Fuel Usage History screen
-function FuelUsageHistoryScreen() {
-  return (
-    <View style={styles.tabContainer}>
-      <Text style={styles.tabText}>Fuel Usage History</Text>
-      {/* Add your content for fuel usage history */}
-    </View>
-  );
-}
 
-function RemainingFuelLimitScreen() {
-  return (
-    <View style={styles.tabContainer}>
-      <Text style={styles.tabText}>Remaining Fuel Limit</Text>
-      {/* Add your content for remaining fuel limit */}
-    </View>
-  );
-}
-
-function SendComplaintScreen() {
-  return (
-    <View style={styles.tabContainer}>
-      <Text style={styles.tabText}>Send Complaint</Text>
-      {/* Add your content for sending complaints */}
-      <Button title="Send" onPress={() => alert('Complaint sent!')} />
-    </View>
-  );
-}
-
-function ReviewComplaintStatusScreen() {
-  return (
-    <View style={styles.tabContainer}>
-      <Text style={styles.tabText}>Review Complaint Status</Text>
-      {/* Add your content for reviewing complaint status */}
-    </View>
-  );
-}
-
-// Main Driver Dashboard Screen using Drawer
 export default function DriverDashboardScreen() {
   return (
     <NavigationContainer independent={true}>
       <Drawer.Navigator
-        initialRouteName="FuelUsageHistory"
+        initialRouteName="Distance Map"
         screenOptions={{
-          drawerLabelStyle: { fontSize: 15, fontWeight: 'bold' },
+          drawerLabelStyle: { fontSize: 15, fontFamily:'Google-Bold' },
           drawerActiveTintColor: '#030E25',
           drawerInactiveTintColor: '#888',
+          headerTitleStyle: { fontFamily:'Google-Bold'},
+          headerLeftContainerStyle: {backgroundColor:'#DDD',borderBottomRightRadius:30,borderTopRightRadius:30,marginBottom:5}
         }}
       >
-        <Drawer.Screen name="Fuel Usage History" component={FuelUsageHistoryScreen} />
-        <Drawer.Screen name="Remaining Fuel Limit" component={RemainingFuelLimitScreen} />
-        <Drawer.Screen name="Send Complaint" component={SendComplaintScreen} />
-        <Drawer.Screen name="Review Complaint Status" component={ReviewComplaintStatusScreen} />
+        <Drawer.Screen name="Distance Map" component={DistanceMap}/>
+        <Drawer.Screen name="Fuel Usage" component={FuelUsageScreen} />
+        <Drawer.Screen name="Fuel Requests" component={RequestFuel} />
+        <Drawer.Screen name="Complains" component={AddComplain} />
       </Drawer.Navigator>
     </NavigationContainer>
   );
