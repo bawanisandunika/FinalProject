@@ -1,110 +1,170 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { firestore } from '../../../firebaseConfig';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import * as geocoding from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function DistanceMap() {
+export default function ShedLocationsMap() {
   const [location, setLocation] = useState(null);
-  const [distance, setDistance] = useState(0); // Distance in kilometers
-  const [previousLocation, setPreviousLocation] = useState(null);
+  const [approvedLocations, setApprovedLocations] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let locationSubscription;
+    fetchMapData(); 
+  }, []);
 
-    (async () => {
-      // Request permission to access location
+  const fetchMapData = async () => {
+    setLoading(true);
+    try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         console.log('Permission to access location was denied');
+        setLoading(false);
         return;
       }
 
-      // Get the initial location
       let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation({
+      const userLocation = {
         latitude: currentLocation.coords.latitude,
         longitude: currentLocation.coords.longitude,
-      });
-      setPreviousLocation(currentLocation.coords);
+      };
+      setLocation(userLocation);
 
-      // Subscribe to location changes
-      locationSubscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.High,
-          distanceInterval: 1, // Get updates every 1 meter
-        },
-        (newLocation) => {
-          const { latitude, longitude } = newLocation.coords;
-          setLocation({ latitude, longitude });
-
-          // Calculate distance from the previous location
-          if (previousLocation) {
-            const newDistanceInMeters = calculateDistance(
-              previousLocation.latitude,
-              previousLocation.longitude,
-              latitude,
-              longitude
-            );
-
-            // Update the distance only if it's greater than or equal to 10 meters
-            const distanceThreshold = 10; // 10 meters
-            if (newDistanceInMeters >= distanceThreshold) {
-              const newDistanceInKm = newDistanceInMeters / 1000; // Convert meters to kilometers
-              setDistance((prevDistance) => prevDistance + newDistanceInKm);
-              setPreviousLocation(newLocation.coords); // Update the previous location after moving 10 meters
-            }
-          }
-        }
+      const q = query(
+        collection(firestore, 'Shed'),
+        where('Approved_status', '==', true)
       );
-    })();
+      const querySnapshot = await getDocs(q);
+      const locations = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        const locationString = data.location;
 
-    // Clean up the subscription on component unmount
-    return () => {
-      if (locationSubscription) {
-        locationSubscription.remove();
+        return { locationString, shedName: data.shedName };
+      });
+
+      const coordinatesPromises = locations.map(async (loc) => {
+        const coordinates = await convertAddressToCoordinates(loc.locationString);
+        return { ...loc, coordinates }; 
+      });
+
+      const locationsWithCoordinates = await Promise.all(coordinatesPromises);
+      setApprovedLocations(locationsWithCoordinates); 
+
+      findNearestShed(userLocation, locationsWithCoordinates);
+
+    } catch (error) {
+      console.error('Error fetching approved locations: ', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const convertAddressToCoordinates = async (address) => {
+    try {
+      const geocodeResult = await geocoding.geocodeAsync(address);
+      if (geocodeResult.length > 0) {
+        const { latitude, longitude } = geocodeResult[0];
+        return { latitude, longitude };
       }
-    };
-  }, []);
+      return null;
+    } catch (error) {
+      console.error('Error converting address to coordinates: ', error);
+      return null;
+    }
+  };
 
-  // Haversine formula to calculate the distance between two points in meters
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371e3; // Radius of the earth in meters
-    const toRadians = (deg) => (deg * Math.PI) / 180;
-    const dLat = toRadians(lat2 - lat1);
-    const dLon = toRadians(lon2 - lon1);
-
+    const R = 6371; 
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRadians(lat1)) *
-        Math.cos(toRadians(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in meters
-    return distance;
+    return R * c; 
+  };
+
+  const findNearestShed = (userLocation, locations) => {
+    if (!locations.length) return;
+
+    let nearestLocation = null;
+    let shortestDistance = Number.MAX_VALUE;
+
+    locations.forEach((loc) => {
+      const { coordinates } = loc;
+      if (coordinates) {
+        const distance = calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          coordinates.latitude,
+          coordinates.longitude
+        );
+        if (distance < shortestDistance) {
+          shortestDistance = distance;
+          nearestLocation = loc;
+        }
+      }
+    });
+
+    if (nearestLocation) {
+      Alert.alert(
+        'Nearest Shed',
+        `The nearest shed is ${nearestLocation.shedName}. It is approximately ${shortestDistance.toFixed(2)} km away. Do you want to navigate there?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Navigate',
+            onPress: () => navigateToShed(nearestLocation.coordinates),
+          },
+        ]
+      );
+    }
+  };
+
+  const navigateToShed = (coordinates) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${coordinates.latitude},${coordinates.longitude}`;
+    Linking.openURL(url).catch(err => console.error('Error opening maps:', err));
   };
 
   return (
     <View style={styles.container}>
-      {location ? (
-        <MapView
-          style={styles.map}
-          region={{
-            latitude: location.latitude,
-            longitude: location.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-          showsUserLocation={true}
-        >
-          <Marker coordinate={location} />
-        </MapView>
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : location ? (
+        <>
+          <MapView
+            style={styles.map}
+            region={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+            showsUserLocation={true}
+          >
+            {approvedLocations.map((loc, index) => {
+              const { coordinates } = loc;
+              return coordinates ? (
+                <Marker
+                  key={index}
+                  coordinate={coordinates}
+                  title={loc.shedName}
+                />
+              ) : null;
+            })}
+          </MapView>
+
+          <TouchableOpacity style={styles.reloadButton} onPress={fetchMapData}>
+            <Ionicons name="reload" size={24} color="white" />
+          </TouchableOpacity>
+        </>
       ) : (
         <Text>Loading map...</Text>
       )}
-      <View style={styles.info}>
-        <Text>Distance traveled: {distance.toFixed(2)} km</Text>
-      </View>
     </View>
   );
 }
@@ -115,10 +175,17 @@ const styles = StyleSheet.create({
   },
   map: {
     width: '100%',
-    height: '80%',
+    height: '100%',
   },
-  info: {
-    padding: 20,
-    backgroundColor: 'white',
+  reloadButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#007AFF',
+    borderRadius: 50,
+    padding: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
   },
 });

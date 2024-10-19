@@ -7,6 +7,7 @@ import FuelUsageScreen from './DrawerScreens/FuelUsageScreen';
 import AddComplain from './DrawerScreens/AddComplain'
 import TopTabFuel from './DrawerScreens/TopTabFuel'
 import TopTabComplain from './DrawerScreens/toptabComplain';
+import DriverQrScanScreen from './DriverQrScanScreen';
 
 // Create Drawer Navigator
 const Drawer = createDrawerNavigator();
@@ -16,7 +17,7 @@ export default function DriverDashboardScreen() {
   return (
     <NavigationContainer independent={true}>
       <Drawer.Navigator
-        initialRouteName="Distance Map"
+        initialRouteName="Driver QR scan "
         screenOptions={{
           drawerLabelStyle: { fontSize: 15, fontFamily:'Google-Bold' },
           drawerActiveTintColor: '#030E25',
@@ -24,7 +25,8 @@ export default function DriverDashboardScreen() {
           headerTitleStyle: { fontFamily:'Google-Bold'},
           headerLeftContainerStyle: {backgroundColor:'#DDD',borderBottomRightRadius:30,borderTopRightRadius:30,marginBottom:5}
         }}
-      >
+      > 
+        <Drawer.Screen name="Driver Qr Scan " component={DriverQrScanScreen}/>
         <Drawer.Screen name="Distance Map" component={DistanceMap}/>
         <Drawer.Screen name="Fuel Usage" component={FuelUsageScreen} />
         <Drawer.Screen name="Fuel Requests" component={TopTabFuel} />

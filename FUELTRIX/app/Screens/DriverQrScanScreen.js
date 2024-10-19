@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
+import { useNavigation } from '@react-navigation/native';
 
-export default function DriverVehicleScanScreen({ navigation }) {
+export default function DriverVehicleScanScreen() {
+  const navigation = useNavigation(); // Correctly place useNavigation inside the component
+
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [vehicleDetails, setVehicleDetails] = useState(null); // Holds vehicle details after scanning
@@ -46,10 +49,12 @@ export default function DriverVehicleScanScreen({ navigation }) {
     setVehicleDetails(null); // Reset vehicle details
   };
 
-  // Handle "Exit" button press to navigate to the driver home page
-  const handleExitPress = () => {
-    navigation.navigate('DriverHome'); // Assuming 'DriverHome' is the name of your driver's home screen
+  // Handle "Link" button press to navigate to the dashboard
+  const handleLinkPress = () => {
+    navigation.navigate('DriverDashboard'); // Navigate to the DriverDashboard screen
   };
+
+  
 
   if (hasPermission === null) {
     return <Text>Requesting camera permission...</Text>;
@@ -70,12 +75,7 @@ export default function DriverVehicleScanScreen({ navigation }) {
             <Text style={styles.scanButtonText}>Scan Vehicle QR</Text>
           </TouchableOpacity>
           {/* Exit button to go back to driver's home screen */}
-          <TouchableOpacity
-            style={styles.exitButton}
-            onPress={handleExitPress}
-          >
-            <Text style={styles.exitButtonText}>Exit</Text>
-          </TouchableOpacity>
+         
         </Animated.View>
       ) : (
         <View style={styles.scannerContainer}>
@@ -97,6 +97,14 @@ export default function DriverVehicleScanScreen({ navigation }) {
               >
                 <Text style={styles.rescanText}>Scan Again</Text>
               </TouchableOpacity>
+
+              {/* Link button to navigate to dashboard */}
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={handleLinkPress}
+              >
+                <Text style={styles.linkText}>Link</Text>
+              </TouchableOpacity>
             </View>
           ) : null}
         </View>
@@ -117,7 +125,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanButton: {
-    backgroundColor: '#1c6ef2',
+    backgroundColor: "#030E25",
     paddingVertical: 15,
     paddingHorizontal: 50,
     borderRadius: 10,
@@ -126,16 +134,9 @@ const styles = StyleSheet.create({
   scanButtonText: {
     color: '#fff',
     fontSize: 18,
-  },
-  exitButton: {
-    backgroundColor: '#d9534f', // Red color for the exit button
-    paddingVertical: 15,
-    paddingHorizontal: 50,
-    borderRadius: 10,
-  },
-  exitButtonText: {
-    color: '#fff',
-    fontSize: 18,
+    fontFamily:'Google',
+
+  
   },
   scannerContainer: {
     flex: 1,
@@ -157,17 +158,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginVertical: 5,
     textAlign: 'center',
+    fontFamily:'Google',
+
   },
   rescanButton: {
-    backgroundColor: '#1c6ef2',
+    backgroundColor: "#ccc",
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,
     marginTop: 20,
   },
   rescanText: {
-    color: '#fff',
+    color: "#030E25",
+    fontSize: 18,
+    fontFamily:'Google-Bold',
+    textAlign: 'center',
+  },
+  linkButton: {
+    backgroundColor: "#030E25", // Green color for the Link button
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  linkText: {
+    color: "#fff",
     fontSize: 18,
     textAlign: 'center',
+    fontFamily:'Google-Bold',
+
   },
 });

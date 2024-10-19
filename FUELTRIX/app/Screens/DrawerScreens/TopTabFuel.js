@@ -10,8 +10,8 @@ export default function TopTabFuel() {
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: '#F8F9FA', // Light gray background for the tab bar
-          elevation: 2, // Add shadow for depth
+          backgroundColor: '#F8F9FA', 
+          elevation: 2, 
         },
         tabBarActiveTintColor: '#030E25', // Color for the active tab label
         tabBarInactiveTintColor: '#6c757d', // Color for the inactive tab label

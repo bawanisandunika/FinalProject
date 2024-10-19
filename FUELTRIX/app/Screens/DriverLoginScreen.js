@@ -34,7 +34,7 @@ export default function DriverLoginScreen() {
   }, []);
 
   const handleLogin = () => {
-    navigation.navigate('DriverHome');
+    navigation.navigate('DriverDashboard');
   };
 
   return (
