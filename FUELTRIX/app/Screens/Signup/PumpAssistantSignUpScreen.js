@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Picker } from '@react-native-picker/picker'; // Picker for combo box (dropdown)
 import { ScrollView } from 'react-native';
+import { doc, getDoc, query, where, collection, getDocs, addDoc } from "firebase/firestore"; // Added addDoc
+import { firestore } from '../../../firebaseConfig';  // Ensure correct Firebase config
 
-export default function PumpAssistantSignUpScreen() {
-  const [district, setDistrict] = useState('');
-  const [shedId, setShedId] = useState('');
+export default function SignUpScreen() {
   const [securityCode, setSecurityCode] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -13,8 +12,6 @@ export default function PumpAssistantSignUpScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [districtError, setDistrictError] = useState('');
-  const [shedIdError, setShedIdError] = useState('');
   const [securityCodeError, setSecurityCodeError] = useState('');
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
@@ -22,19 +19,10 @@ export default function PumpAssistantSignUpScreen() {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
-  // Updated list of all 25 districts
-  const districts = [
-    'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha',
-    'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 
-    'Mannar', 'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 
-    'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
-  ];
-
   const validateFields = () => {
     let valid = true;
 
-    setDistrictError('');
-    setShedIdError('');
+    // Reset errors
     setSecurityCodeError('');
     setFirstNameError('');
     setLastNameError('');
@@ -42,16 +30,7 @@ export default function PumpAssistantSignUpScreen() {
     setPasswordError('');
     setConfirmPasswordError('');
 
-    if (!district) {
-      setDistrictError('District is required');
-      valid = false;
-    }
-
-    if (!shedId) {
-      setShedIdError('Shed ID is required');
-      valid = false;
-    }
-
+    // Validation
     if (!securityCode) {
       setSecurityCodeError('Security Code is required');
       valid = false;
@@ -86,42 +65,43 @@ export default function PumpAssistantSignUpScreen() {
     return valid;
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (validateFields()) {
-      Alert.alert('Registration Successful', 'Welcome to FuelTrix!');
+      try {
+        // Query to check if the security code exists and Approved_status is true
+        const shedQuery = query(
+          collection(firestore, 'Shed'),
+          where('Security_Key', '==', securityCode),
+          where('Approved_status', '==', true)
+        );
+
+        const shedSnapshot = await getDocs(shedQuery);
+
+        if (!shedSnapshot.empty) {
+          // Security code is valid
+          await addDoc(collection(firestore, 'PumpAssistant'), {
+            securityCode,
+            firstName,
+            lastName,
+            email,
+            password, // Use Firebase Authentication in real apps for password handling
+          });
+          Alert.alert('Registration Successful', 'Welcome to FuelTrix!');
+        } else {
+          // Invalid security code or shed not approved
+          Alert.alert('Invalid Security Code', 'Security Code is invalid or Shed is not approved.');
+        }
+      } catch (error) {
+        console.error('Error adding document: ', error);
+        Alert.alert('Registration Failed', 'Something went wrong. Please try again.');
+      }
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+       <Text style={styles.title}>Sign Up with FuelTrix</Text>
       <View style={styles.formContainer}>
-        {/* District (Combo Box) */}
-        <Text style={styles.label}>Select District</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={district}
-            onValueChange={(itemValue) => setDistrict(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Select District" value="" />
-            {districts.map((district, index) => (
-              <Picker.Item key={index} label={district} value={district} />
-            ))}
-          </Picker>
-        </View>
-        {districtError ? <Text style={styles.errorText}>{districtError}</Text> : null}
-
-        {/* Shed ID */}
-        <TextInput
-          style={styles.input}
-          placeholder="Shed ID"
-          placeholderTextColor="#aaa"
-          value={shedId}
-          onChangeText={(text) => setShedId(text)}
-          onBlur={() => !shedId && setShedIdError('Shed ID is required')}
-        />
-        {shedIdError ? <Text style={styles.errorText}>{shedIdError}</Text> : null}
-
         {/* Security Code */}
         <TextInput
           style={styles.input}
@@ -215,45 +195,46 @@ const styles = StyleSheet.create({
     width: '90%',
     paddingHorizontal: 10,
   },
-  pickerContainer: {
-    borderColor: '#030E25',
-    borderWidth: 1,
-    borderRadius: 25,
-    marginBottom: 10,
-  },
-  picker: {
-    height: 50,
-    color: '#030E25',
+  title: {
+    marginVertical:20,
+    fontSize: 24,
+    fontFamily: 'Google-Bold',
+    color: '#030E25', // You can adjust the color as needed
+    marginBottom: 20, // Space between title and form
+    textAlign: 'center', // Center the title
   },
   input: {
-    borderColor: '#030E25',
+    backgroundColor: '#F5F5F5',
+    borderColor: '#aaa',
     borderWidth: 1,
-    borderRadius: 25,
+    borderRadius: 30,
     paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginBottom: 10,
-    color: '#030E25',
-  },
-  label: {
+    paddingHorizontal: 20,
+    marginBottom: 30,
     fontSize: 16,
-    fontWeight: 'bold',
     color: '#030E25',
-    marginBottom: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   button: {
     backgroundColor: '#030E25',
     padding: 15,
     borderRadius: 25,
     alignItems: 'center',
+    marginTop:50
   },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'Google-Bold',
   },
   errorText: {
     color: 'red',
     fontSize: 12,
     marginBottom: 10,
+    marginTop: -20,
   },
 });

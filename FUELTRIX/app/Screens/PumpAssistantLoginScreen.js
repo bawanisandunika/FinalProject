@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Animated, TouchableOpacity, Alert } from 'react-native';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useNavigation } from '@react-navigation/native';
+import { getDocs, query, where, collection } from 'firebase/firestore';
+import { firestore } from '../../firebaseConfig'; // Ensure proper Firebase config import
 
 export default function PumpAssistantLoginScreen() {
-  const navigation = useNavigation(); // Move useNavigation inside the component
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.5));
   const [buttonAnim] = useState(new Animated.Value(50));
+
+  // Validation errors
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     Animated.parallel([
@@ -33,9 +39,56 @@ export default function PumpAssistantLoginScreen() {
     ]).start();
   }, []);
 
-  const handleLogin = () => {
-    // Navigate to ScanQr screen when login is pressed
-    navigation.navigate('ScanQr');
+  const validateFields = () => {
+    let valid = true;
+
+    setEmailError('');
+    setPasswordError('');
+
+    const emailRegex = /\S+@\S+\.\S+/;
+
+    if (!email || !emailRegex.test(email)) {
+      setEmailError('Please enter a valid email');
+      valid = false;
+    }
+
+    if (!password || password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      valid = false;
+    }
+
+    return valid;
+  };
+
+  const handleLogin = async () => {
+    if (!validateFields()) return;
+
+    try {
+      // Query Firestore for matching email and password
+      const pumpAssistantQuery = query(
+        collection(firestore, 'PumpAssistant'),
+        where('email', '==', email),
+        where('password', '==', password) // Passwords should be encrypted in a real app
+      );
+
+      const querySnapshot = await getDocs(pumpAssistantQuery);
+
+      if (!querySnapshot.empty) {
+        // Credentials match
+        Alert.alert('Login Successful', 'Welcome to FuelTrix!');
+        navigation.navigate('ScanQr');
+      } else {
+        // Invalid credentials
+        Alert.alert('Login Failed', 'Invalid email or password.');
+      }
+    } catch (error) {
+      console.error('Error during login: ', error);
+      Alert.alert('Login Failed', 'Something went wrong. Please try again.');
+    }
+  };
+
+  const handleSignUp = () => {
+    navigation.navigate('PumpAssistantSignup');
   };
 
   return (
@@ -46,6 +99,7 @@ export default function PumpAssistantLoginScreen() {
       </Animated.View>
 
       <View style={styles.formContainer}>
+        {/* Email Input */}
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -55,6 +109,9 @@ export default function PumpAssistantLoginScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
+        {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+
+        {/* Password Input */}
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -64,11 +121,15 @@ export default function PumpAssistantLoginScreen() {
           secureTextEntry
           autoCapitalize="none"
         />
+        {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
       </View>
 
       <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleSignUp} style={styles.signUpContainer}>
+          <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -99,7 +160,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#F5F5F5',
-    borderColor: '#030E25',
+    borderColor: '#aaa',
     borderWidth: 1,
     borderRadius: 30,
     paddingVertical: 14,
@@ -134,5 +195,19 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontFamily: 'Google-Bold',
+  },
+  signUpContainer: {
+    marginTop: 20,
+  },
+  signUpText: {
+    color: '#030E25',
+    fontSize: 16,
+    fontFamily: 'Google',
+    textDecorationLine: 'underline',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginBottom: 10,
   },
 });
