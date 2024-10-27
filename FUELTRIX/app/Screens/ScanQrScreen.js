@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
+import { MaterialCommunityIcons } from '@expo/vector-icons'; // Import vector icons
 
 export default function ScanQrScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [showScanner, setShowScanner] = useState(false); // Initially, the scanner is hidden
   const fadeAnim = useRef(new Animated.Value(0)).current; // Initial opacity for animation
+  const pulseAnim = useRef(new Animated.Value(1)).current; // Pulse animation for QR icon
 
   // Request camera permission when the component loads
   useEffect(() => {
@@ -21,6 +23,22 @@ export default function ScanQrScreen() {
       duration: 1000,
       useNativeDriver: true,
     }).start();
+
+    // QR icon pulse animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.3, // Slightly increase the scaling
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   const handleBarCodeScanned = ({ type, data }) => {
@@ -38,6 +56,18 @@ export default function ScanQrScreen() {
 
   return (
     <View style={styles.container}>
+      {/* QR Icon Animation in the center of the screen */}
+      {!showScanner && (
+        <Animated.View style={[styles.qrIconContainer, { transform: [{ scale: pulseAnim }] }]}>
+          <MaterialCommunityIcons
+            name="qrcode-scan"
+            size={150}
+            color="#030E25" // Dark blue color for the QR icon
+          />
+        </Animated.View>
+      )}
+
+      {/* Scan Button below the QR Icon */}
       {!showScanner ? (
         <Animated.View style={[styles.scanButtonContainer, { opacity: fadeAnim }]}>
           <TouchableOpacity
@@ -74,12 +104,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  qrIconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 50, // Add space between the icon and the button
+  },
   scanButtonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   scanButton: {
-    backgroundColor: '#1c6ef2',
+    backgroundColor: '#030E25',
     paddingVertical: 15,
     paddingHorizontal: 50,
     borderRadius: 10,
