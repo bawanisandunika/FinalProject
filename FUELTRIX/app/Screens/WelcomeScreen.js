@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { View, Text, StyleSheet, Animated, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; // Import navigation
 
 export default function WelcomeScreen() {
@@ -34,8 +33,12 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Replace FontAwesome5 icon with an Image */}
       <Animated.View style={[styles.logoContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-        <FontAwesome5 name="gas-pump" size={140} color="#030E25" />
+        <Image
+          source={require('./../../assets/welcome_image.jpg')} // Ensure correct path to your image
+          style={styles.logoImage}
+        />
         <Text style={styles.appName}>FuelTrix</Text>
       </Animated.View>
       <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
@@ -66,6 +69,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+  logoImage: {
+    width: 200, // Adjust the width based on the image size
+    height: 200, // Adjust the height based on the image size
+    resizeMode: 'contain', // Ensures the image maintains aspect ratio
+  },
   appName: {
     fontSize: 36,
     fontFamily: 'Google-Bold',
@@ -80,7 +88,7 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     position: 'absolute',
-    bottom: '10%', // Positioning the buttons from the bottom of the screen to 1/3 height
+    bottom: '10%', // Positioning the buttons from the bottom of the screen
     width: '100%',
     paddingHorizontal: 20,
     justifyContent: 'center',

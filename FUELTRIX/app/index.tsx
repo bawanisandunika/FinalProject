@@ -10,6 +10,9 @@ import DriverHomePageScreen from "./Screens/DriverHomePageScreen"
 import DriverDashboardScreen from "./Screens/DriverDashboardScreen"
 import EmergancyContact from "./Screens/EmergancyContact"
 import MainNavigation from './Navigation/MainNavigation'
+import { Provider } from "react-redux";
+import store from './Redux/store';
+
 
 
 export default function Index() {
@@ -27,8 +30,9 @@ export default function Index() {
     <View
       style={{flex:1}}
     >
+       <Provider store={store}>
       <MainNavigation/>
-      
+      </Provider>
     </View>
   );
 }
