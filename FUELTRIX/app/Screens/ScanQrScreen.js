@@ -28,7 +28,7 @@ export default function ScanQrScreen() {
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.3, // Slightly increase the scaling
+          toValue: 1.3, 
           duration: 1000,
           useNativeDriver: true,
         }),
@@ -61,7 +61,7 @@ export default function ScanQrScreen() {
         <Animated.View style={[styles.qrIconContainer, { transform: [{ scale: pulseAnim }] }]}>
           <MaterialCommunityIcons
             name="qrcode-scan"
-            size={150}
+            size={300}
             color="#030E25" // Dark blue color for the QR icon
           />
         </Animated.View>
@@ -112,6 +112,7 @@ const styles = StyleSheet.create({
   scanButtonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop:50,
   },
   scanButton: {
     backgroundColor: '#030E25',
