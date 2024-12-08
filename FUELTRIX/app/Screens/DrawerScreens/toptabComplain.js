@@ -28,7 +28,7 @@ export default function TopTabComplain() {
       }}
     >
     <Tab.Screen name="Send Complain" component={AddComplain} />
-    <Tab.Screen name="Review Complain" component={ReviewComplain} />
+    <Tab.Screen name="Complain History" component={ReviewComplain} />
   </Tab.Navigator>
   )
 }

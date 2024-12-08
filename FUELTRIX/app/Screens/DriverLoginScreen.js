@@ -45,11 +45,24 @@ export default function DriverLoginScreen() {
         let registrationNumber = "";
         let status = false;
   
-        const linkQuery = query(collection(firestore, "Link"), where("email", "==", email));
+        const linkQuery = query(collection(firestore, "Link"), where("email", "==", email),where("status", "==", true));
+        const emptyLinkQuery = query(
+          collection(firestore, "Link"),
+          where("email", "==", email),
+          where("registrationNumber", "==", ""),
+          where("status", "==", false)
+        );
         const linkSnapshot = await getDocs(linkQuery);
+        const linkSnapshot2 = await getDocs(emptyLinkQuery);
+
   
         if (!linkSnapshot.empty) {
           const linkData = linkSnapshot.docs[0].data();
+          registrationNumber = linkData.registrationNumber;
+          status = linkData.status;
+        } 
+         else if(!linkSnapshot2.empty) {
+          const linkData = linkSnapshot2.docs[0].data();
           registrationNumber = linkData.registrationNumber;
           status = linkData.status;
         } else {

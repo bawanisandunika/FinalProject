@@ -1,34 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Animated, Modal, TextInput, Dimensions } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-import { MaterialCommunityIcons } from '@expo/vector-icons'; // Import vector icons
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { collection, getDocs, query, where,doc, updateDoc, addDoc  } from "firebase/firestore";
+import { firestore } from '../../firebaseConfig';
+import { BarChart } from "react-native-chart-kit";
+import { useSelector } from 'react-redux';
+
+const { width } = Dimensions.get("window");
 
 export default function ScanQrScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [showScanner, setShowScanner] = useState(false); // Initially, the scanner is hidden
-  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial opacity for animation
-  const pulseAnim = useRef(new Animated.Value(1)).current; // Pulse animation for QR icon
+  const [showScanner, setShowScanner] = useState(false);
+  const [vehicleDetails, setVehicleDetails] = useState({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [pumpModalVisible, setPumpModalVisible] = useState(false);
+  const [fuelInput, setFuelInput] = useState('');
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Request camera permission when the component loads
+  const pumpAssistant = useSelector((state) => state.pumpAssistant);
+
   useEffect(() => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
     })();
 
-    // Fade in the button on load
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 1000,
       useNativeDriver: true,
     }).start();
 
-    // QR icon pulse animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.3, 
+          toValue: 1.3,
           duration: 1000,
           useNativeDriver: true,
         }),
@@ -41,10 +50,108 @@ export default function ScanQrScreen() {
     ).start();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    Alert.alert(`QR Code Scanned!`, `Data: ${data}`);
+
+    try {
+      const vehicleQuery = query(
+        collection(firestore, 'Vehicle'),
+        where('vehicleCode', '==', data)
+      );
+      const querySnapshot = await getDocs(vehicleQuery);
+
+      if (!querySnapshot.empty) {
+        const vehicleData = querySnapshot.docs[0].data();
+        setVehicleDetails(vehicleData);
+        setModalVisible(true);
+      } else {
+        Alert.alert('Vehicle Not Found', 'No vehicle details found for this QR code.');
+        setVehicleDetails({});
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch vehicle details. Please try again.');
+      console.error(error);
+    }
   };
+
+  const handlePump = () => {
+    const remainingFuel = (vehicleDetails?.fuelVolume || 0) - (vehicleDetails?.pumpedVolume || 0);
+
+    if (remainingFuel <= 0) {
+      Alert.alert('Fuel Limit Exceeded', 'You have reached the maximum fuel limit.');
+    } else {
+      setPumpModalVisible(true);
+    }
+  };
+
+  const handleConfirmPump = async () => {
+    const remainingFuel = (vehicleDetails?.fuelVolume || 0) - (vehicleDetails?.pumpedVolume || 0);
+    const fuelToPump = parseFloat(fuelInput);
+  
+    if (fuelToPump > remainingFuel) {
+      Alert.alert('Invalid Input', `You can only pump up to ${remainingFuel} liters.`);
+      return;
+    }
+  
+    try {
+      // Fetch Shed details
+      const shedQuery = query(
+        collection(firestore, 'Shed'),
+        where('Security_Key','==',pumpAssistant?.securityCode)
+      );
+      const shedSnapshot = await getDocs(shedQuery);
+  
+      let shedName = 'Unknown Shed'; // Default fallback
+      if (!shedSnapshot.empty) {
+        const shedDetails = shedSnapshot.docs[0].data();
+        shedName = shedDetails?.shedName || 'Unknown Shed'; // Fallback if shed name is undefined
+      } else {
+        console.warn('No shed found for the given security code.');
+      }
+  
+      // Update Vehicle document
+      const vehicleQuery = query(
+        collection(firestore, 'Vehicle'),
+        where('vehicleCode', '==', vehicleDetails.vehicleCode)
+      );
+      const vehicleSnapshot = await getDocs(vehicleQuery);
+  
+      if (!vehicleSnapshot.empty) {
+        const vehicleDoc = vehicleSnapshot.docs[0];
+        const vehicleRef = doc(firestore, 'Vehicle', vehicleDoc.id); // Get the document reference
+        await updateDoc(vehicleRef, {
+          pumpedVolume: (vehicleDetails.pumpedVolume || 0) + fuelToPump,
+        });
+      }
+  
+      // Create Pump record
+      const pumpRecord = {
+        vehicleCode: vehicleDetails.vehicleCode,
+        fuelPumped: fuelToPump,
+        shedName: shedName,
+        assistantFirstName: pumpAssistant?.firstName || 'Unknown Assistant',
+        assistantLastName: pumpAssistant?.lastName || 'Unknown Assistant',
+
+        pumpTime: new Date().toISOString(),
+      };
+  
+      // Add to Pump collection
+      await addDoc(collection(firestore, 'Pump'), pumpRecord);
+  
+      Alert.alert('Pumping Successful', `You have pumped ${fuelToPump} liters.`);
+      setVehicleDetails((prevDetails) => ({
+        ...prevDetails,
+        pumpedVolume: (prevDetails.pumpedVolume || 0) + fuelToPump,
+      }));
+      setFuelInput('');
+      setPumpModalVisible(false);
+      setModalVisible(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to process the pump details. Please try again.');
+      console.error(error);
+    }
+  };
+  
 
   if (hasPermission === null) {
     return <Text>Requesting camera permission...</Text>;
@@ -56,24 +163,26 @@ export default function ScanQrScreen() {
 
   return (
     <View style={styles.container}>
-      {/* QR Icon Animation in the center of the screen */}
+      {/* Display Pump Assistant Details */}
+      <View style={styles.assistantDetails}>
+        <Text style={styles.assistantTitle}>Pump Assistant Details</Text>
+        <Text style={styles.assistantText}>Name: {pumpAssistant.firstName} {pumpAssistant.lastName}</Text>
+        <Text style={styles.assistantText}>Email: {pumpAssistant.email}</Text>
+        <Text style={styles.assistantText}>Security Code: {pumpAssistant.securityCode}</Text>
+      </View>
       {!showScanner && (
         <Animated.View style={[styles.qrIconContainer, { transform: [{ scale: pulseAnim }] }]}>
           <MaterialCommunityIcons
             name="qrcode-scan"
-            size={300}
-            color="#030E25" // Dark blue color for the QR icon
+            size={200}
+            color="#030E25"
           />
         </Animated.View>
       )}
 
-      {/* Scan Button below the QR Icon */}
       {!showScanner ? (
         <Animated.View style={[styles.scanButtonContainer, { opacity: fadeAnim }]}>
-          <TouchableOpacity
-            style={styles.scanButton}
-            onPress={() => setShowScanner(true)}
-          >
+          <TouchableOpacity style={styles.scanButton} onPress={() => setShowScanner(true)}>
             <Text style={styles.scanButtonText}>Scan Here</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -86,13 +195,128 @@ export default function ScanQrScreen() {
           {scanned && (
             <TouchableOpacity
               style={styles.rescanButton}
-              onPress={() => setScanned(false)}
+              onPress={() => {
+                setScanned(false);
+                setVehicleDetails({});
+              }}
             >
               <Text style={styles.rescanText}>Tap to Scan Again</Text>
             </TouchableOpacity>
           )}
         </View>
       )}
+
+      {/* Modal for Vehicle Details */}
+     {/* Modal for Vehicle Details */}
+{modalVisible && vehicleDetails?.fuelVolume !== undefined && (
+  <Modal
+    visible={modalVisible}
+    animationType="slide"
+    transparent={true}
+    onRequestClose={() => setModalVisible(false)}
+  >
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        {/* Close Button */}
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => setModalVisible(false)}
+        >
+          <MaterialCommunityIcons name="close" size={24} color="#000" />
+        </TouchableOpacity>
+
+        <Text style={styles.modalTitle}>Vehicle Details</Text>
+        <Text style={styles.modalText}>Company: {vehicleDetails.company}</Text>
+        <Text style={styles.modalText}>Fuel Type: {vehicleDetails.fuelType}</Text>
+        <Text style={styles.modalText}>Fuel Limit: {vehicleDetails.fuelVolume}L</Text>
+        <Text style={styles.modalText}>Current Usage: {vehicleDetails.pumpedVolume}L</Text>
+        <Text style={styles.modalText}>
+          Remaining: {vehicleDetails.fuelVolume - vehicleDetails.pumpedVolume}L
+        </Text>
+
+        {/* Bar Chart */}
+        <BarChart
+          data={{
+            labels: ["Fuel Limit", "Used", "Remaining"],
+            datasets: [
+              {
+                data: [
+                  vehicleDetails.fuelVolume,
+                  vehicleDetails.pumpedVolume,
+                  vehicleDetails.fuelVolume - vehicleDetails.pumpedVolume,
+                ],
+              },
+            ],
+          }}
+          width={width * 0.7}
+          height={350}
+          yAxisSuffix="L"
+          chartConfig={{
+            backgroundGradientFrom: "#fff",
+            backgroundGradientTo: "#f4f4f4",
+            color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+          }}
+          style={{
+            marginVertical: 8,
+            borderRadius: 16,
+          }}
+        />
+
+        <View style={styles.modalButtons}>
+          <TouchableOpacity style={styles.modalButton} onPress={handlePump}>
+            <Text style={styles.modalButtonText}>Pump</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modalButton, { backgroundColor: '#f44336' }]}
+            onPress={() => {
+              setScanned(false);
+              setVehicleDetails({});
+              setModalVisible(false);
+            }}
+          >
+            <Text style={styles.modalButtonText}>Scan Again</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </Modal>
+)}
+
+{/* Pump Modal */}
+{pumpModalVisible && (
+  <Modal
+    visible={pumpModalVisible}
+    animationType="fade"
+    transparent={true}
+    onRequestClose={() => setPumpModalVisible(false)}
+  >
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        {/* Close Button */}
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => setPumpModalVisible(false)}
+        >
+          <MaterialCommunityIcons name="close" size={24} color="#000" />
+        </TouchableOpacity>
+
+        <Text style={styles.modalTitle}>Pump Fuel</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter fuel amount"
+          keyboardType="numeric"
+          value={fuelInput}
+          onChangeText={setFuelInput}
+        />
+        <TouchableOpacity style={styles.modalButton} onPress={handleConfirmPump}>
+          <Text style={styles.modalButtonText}>Confirm</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
+)}
+
     </View>
   );
 }
@@ -107,22 +331,19 @@ const styles = StyleSheet.create({
   qrIconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 50, // Add space between the icon and the button
   },
   scanButtonContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop:50,
+    marginTop: 20,
   },
   scanButton: {
     backgroundColor: '#030E25',
-    paddingVertical: 15,
-    paddingHorizontal: 50,
+    padding: 15,
     borderRadius: 10,
   },
   scanButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
+    fontFamily:'Google'
   },
   scannerContainer: {
     flex: 1,
@@ -133,13 +354,72 @@ const styles = StyleSheet.create({
   rescanButton: {
     position: 'absolute',
     bottom: 50,
-    backgroundColor: '#1c6ef2',
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 10,
+    backgroundColor: '#030E25',
+    padding: 10,
+    borderRadius: 5,
+    fontFamily:'Google'
   },
   rescanText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 14,
+    fontFamily:'Google'
+
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    marginBottom: 10,
+    fontFamily:'Google-Bold'
+
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 10,
+    fontFamily:'Google'
+
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  modalButton: {
+    backgroundColor: '#030E25',
+    padding: 10,
+    paddingHorizontal:40,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily:'Google-Bold',
+    textAlign:'center'
+
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    marginVertical: 30,
+    width: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+  },
+  
 });
