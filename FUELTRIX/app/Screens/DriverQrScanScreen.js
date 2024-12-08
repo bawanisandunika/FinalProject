@@ -36,7 +36,7 @@ export default function DriverVehicleScanScreen() {
   }, []);
 
   const handleBarCodeScanned = async ({ type, data }) => {
-    console.log("Driver status:", driverData.status); // Log current status
+    console.log("Driver status:", driverData.status); 
   
     if (driverData.status) {
       Alert.alert(
@@ -85,7 +85,7 @@ export default function DriverVehicleScanScreen() {
 
   const handleRemoveLink = async () => {
     try {
-      const linkQuery = query(collection(firestore, "Link"), where("email", "==", email));
+      const linkQuery = query(collection(firestore, "Link"), where("email", "==", email),where("status", "==", true));
       const linkSnapshot = await getDocs(linkQuery);
 
       if (!linkSnapshot.empty) {

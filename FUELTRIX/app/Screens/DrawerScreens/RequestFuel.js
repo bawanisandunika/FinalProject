@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
+import { addDoc, collection,query,where,getDocs } from 'firebase/firestore';
+import { firestore } from '../../../firebaseConfig';
 
 export default function RequestFuel() {
+  const driverData = useSelector((state) => state.driver.driverData);
+  const { email, registrationNumber, status } = driverData;
   const [volume, setVolume] = useState(0); // Initialize volume with 0
   const [reason, setReason] = useState(''); // Initialize reason as an empty string
 
@@ -18,19 +23,65 @@ export default function RequestFuel() {
   };
 
   // Handle form submission
-  const handleRequest = () => {
+  const handleRequest = async () => {
     if (volume === 0 || reason === '') {
       alert('Please fill out all fields.');
-    } else {
-      // Submit request logic
-      alert(`Fuel request submitted. Volume: ${volume}, Reason: ${reason}`);
+      return;
+    }
+  
+    try {
+      // Query the Vehicle collection to get the company for the registration number
+      const vehicleQuery = query(
+        collection(firestore, 'Vehicle'),
+        where('registrationNumber', '==', registrationNumber)
+      );
+      const vehicleQuerySnapshot = await getDocs(vehicleQuery);
+  
+      if (vehicleQuerySnapshot.empty) {
+        alert('No vehicle found with the provided registration number.');
+        return;
+      }
+  
+      // Get the company data from the first matching document
+      const vehicleData = vehicleQuerySnapshot.docs[0].data();
+      const company = vehicleData.company || 'Unknown'; // Default to 'Unknown' if no company field is found
+  
+      // Add the fuel request to Firestore, including the company information
+      const docRef = await addDoc(collection(firestore, 'FuelRequests'), {
+        email,
+        registrationNumber,
+        company, // Include the company in the fuel request
+        requestVolume: volume,
+        reason,
+        requestedAt: new Date(), // Add a timestamp
+        approvedStatus: 'pending',
+      });
+  
+      alert('Fuel request submitted successfully!');
+      console.log('Document written with ID: ', docRef.id);
+  
+      // Reset form fields
+      setVolume(0);
+      setReason('');
+    } catch (error) {
+      console.error('Error adding document: ', error);
+      alert('Failed to submit fuel request. Please try again.');
     }
   };
+  
+
+  // Show a message if status is false
+  if (!status) {
+    return (
+      <View style={styles.centeredContainer}>
+        <Text style={styles.linkText}>Please link to a vehicle to request fuel.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-
         {/* Volume field with increment/decrement buttons */}
         <View style={styles.volumeContainer}>
           <TouchableOpacity style={[styles.button, styles.elevation]} onPress={decrementVolume}>
@@ -71,15 +122,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 100, // Space above the bottom button
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    color: '#030E25',
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  linkText: {
+    fontSize: 16,
+    color: '#ff6347',
+    fontFamily: 'Google-Bold',
     textAlign: 'center',
   },
   volumeContainer: {
-    marginTop:30,
+    marginTop: 30,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -87,17 +144,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 10,
     borderRadius: 15,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   button: {
     backgroundColor: '#030E25',
@@ -123,17 +169,6 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     fontSize: 16,
     textAlignVertical: 'top',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   requestButton: {
     backgroundColor: '#aaa',
@@ -145,17 +180,6 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     bottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.4,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
   },
   requestButtonText: {
     color: '#030E25',

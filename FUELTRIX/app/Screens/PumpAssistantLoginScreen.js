@@ -4,6 +4,8 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useNavigation } from '@react-navigation/native';
 import { getDocs, query, where, collection } from 'firebase/firestore';
 import { firestore } from '../../firebaseConfig'; // Ensure proper Firebase config import
+import { useDispatch } from 'react-redux';
+import { setPumpAssistant } from '../Redux/Slices/pumpAssistantSlice';
 
 export default function PumpAssistantLoginScreen() {
   const navigation = useNavigation();
@@ -16,6 +18,8 @@ export default function PumpAssistantLoginScreen() {
   // Validation errors
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     Animated.parallel([
@@ -64,21 +68,33 @@ export default function PumpAssistantLoginScreen() {
     if (!validateFields()) return;
 
     try {
-      // Query Firestore for matching email and password
       const pumpAssistantQuery = query(
         collection(firestore, 'PumpAssistant'),
         where('email', '==', email),
-        where('password', '==', password) // Passwords should be encrypted in a real app
+        where('password', '==', password) // Ensure encrypted password check in production
       );
 
       const querySnapshot = await getDocs(pumpAssistantQuery);
 
       if (!querySnapshot.empty) {
-        // Credentials match
-        Alert.alert('Login Successful', 'Welcome to FuelTrix!');
+        const userDoc = querySnapshot.docs[0]; // Assume one document for simplicity
+        const userData = userDoc.data();
+
+        // Dispatch to Redux store
+        dispatch(
+          setPumpAssistant({
+            securityCode: userData.securityCode,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            email: userData.email,
+          })
+        );
+
+        
+
+        Alert.alert('Login Successful', `Welcome ${userData.firstName}!`);
         navigation.navigate('ScanQr');
       } else {
-        // Invalid credentials
         Alert.alert('Login Failed', 'Invalid email or password.');
       }
     } catch (error) {
@@ -160,8 +176,8 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#F5F5F5',
-    borderColor: '#aaa',
-    borderWidth: 1,
+    
+    
     borderRadius: 30,
     paddingVertical: 14,
     paddingHorizontal: 20,
