@@ -1,17 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
-import { getDocs, collection } from 'firebase/firestore';
+import { getDocs, collection, query, where } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+
 import { firestore } from '../../../firebaseConfig';
 
 export default function ReviewComplain() {
   const [complaints, setComplaints] = useState([]); // State to store complaints
   const [loading, setLoading] = useState(true); // Loading indicator for initial fetch
   const [refreshing, setRefreshing] = useState(false); // Refreshing indicator
+  const driverData = useSelector((state) => state.driver.driverData);
+  const { email } = driverData;
 
   // Fetch complaints from Firestore
   const fetchComplaints = async () => {
     try {
-      const querySnapshot = await getDocs(collection(firestore, 'Complain'));
+      // Query to filter complaints based on email
+      const complaintsQuery = query(
+        collection(firestore, 'Complain'),
+        where('email', '==', email)
+      );
+      const querySnapshot = await getDocs(complaintsQuery);
       const fetchedComplaints = querySnapshot.docs.map((doc) => ({
         id: doc.id, // Add Firestore document ID
         ...doc.data(), // Spread the rest of the document data

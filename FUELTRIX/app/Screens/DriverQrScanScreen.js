@@ -184,8 +184,7 @@ export default function DriverVehicleScanScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.driverDetailsContainer}>
-        <Text style={styles.detailsText}>Driver Name: {driverData.email}</Text>
-        <Text style={styles.detailsText}>License Status: {driverData.status ? "Linked" : "Not Linked"}</Text>
+       
       </View>
 
       {!showScanner && !vehicleDetails && (
