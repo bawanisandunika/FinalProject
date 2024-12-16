@@ -1,16 +1,26 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { getDocs, collection, query, where } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+
 import { firestore } from '../../../firebaseConfig';
 
-export default function ReviewRequest() {
-  const [requests, setRequests] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+export default function FuelRequests() {
+  const [requests, setRequests] = useState([]); // State to store fuel requests
+  const [loading, setLoading] = useState(true); // Loading indicator for initial fetch
+  const [refreshing, setRefreshing] = useState(false); // Refreshing indicator
+  const driverData = useSelector((state) => state.driver.driverData);
+  const { email } = driverData;
 
-  // Function to fetch requests from Firestore
-  const fetchRequests = useCallback(async () => {
+  // Fetch fuel requests from Firestore
+  const fetchRequests = async () => {
     try {
-      const querySnapshot = await getDocs(collection(firestore, 'FuelRequests'));
+      // Query to filter fuel requests by email
+      const requestsQuery = query(
+        collection(firestore, 'FuelRequests'),
+        where('email', '==', email)
+      );
+      const querySnapshot = await getDocs(requestsQuery);
       const fetchedRequests = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -18,46 +28,50 @@ export default function ReviewRequest() {
       setRequests(fetchedRequests);
     } catch (error) {
       console.error('Error fetching fuel requests: ', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false); // End refreshing state
     }
-  }, []);
-
-  // Initial data fetch
-  useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
-
-  // Refresh handler for pull-to-refresh
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchRequests();
-    setRefreshing(false);
   };
 
-  const renderCard = ({ item }) => {
-    const cardColor = item.approvedStatus === 'pending' ? styles.pendingCard : styles.approvedCard;
+  // Fetch fuel requests on component mount
+  useEffect(() => {
+    fetchRequests();
+  }, []); // Dependency array is empty, so it runs only once on mount
 
-    return (
-      <TouchableOpacity style={[styles.card, cardColor]}>
-        <Text style={styles.cardTitle}>Vehicle Number: {item.registrationNumber}</Text>
-        <Text style={styles.cardText}>Requested By: {item.email}</Text>
-        <Text style={styles.cardText}>Volume: {item.requestVolume} Liters</Text>
-        <Text style={styles.cardText}>Reason: {item.reason}</Text>
-        <Text style={styles.cardText}>Status: {item.approvedStatus}</Text>
-        <Text style={styles.cardText}>Requested At: {item.requestedAt?.toDate().toLocaleString()}</Text>
-      </TouchableOpacity>
-    );
+  // Render individual fuel request item
+  const renderRequestItem = ({ item }) => (
+    <View style={styles.card}>
+      <Text style={styles.requestDetails}>Request ID: {item.id}</Text>
+      <Text style={styles.email}>Email: {item.email}</Text>
+      <Text style={styles.amount}>Fuel Amount: {item.amount}L</Text>
+      <Text style={styles.timestamp}>{new Date(item.createdAt).toLocaleString()}</Text>
+    </View>
+  );
+
+  // Handle refresh action
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchRequests();
   };
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={requests}
-        keyExtractor={(item) => item.id}
-        renderItem={renderCard}
-        contentContainerStyle={styles.listContainer}
-        refreshing={refreshing} // Bind refreshing state
-        onRefresh={handleRefresh} // Bind refresh handler
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={requests}
+          keyExtractor={(item) => item.id}
+          renderItem={renderRequestItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No fuel requests found.</Text>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -65,38 +79,45 @@ export default function ReviewRequest() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    padding: 15,
     backgroundColor: '#f5f5f5',
   },
-  listContainer: {
-    paddingBottom: 20,
-  },
   card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
     padding: 15,
-    borderRadius: 20,
     marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  pendingCard: {
-    backgroundColor: '#ffcccc', // Light red for pending status
-  },
-  approvedCard: {
-    backgroundColor: '#ccffcc', // Light green for approved status
-  },
-  cardTitle: {
+  requestDetails: {
     fontSize: 18,
-    color: '#030E25',
+    fontWeight: 'bold',
+    color: '#333',
     marginBottom: 5,
-    fontFamily: 'Google-Bold',
   },
-  cardText: {
-    fontSize: 12,
+  email: {
+    fontSize: 14,
     color: '#555',
-    marginBottom: 3,
-    fontFamily: 'Google',
+    marginBottom: 5,
+  },
+  amount: {
+    fontSize: 16,
+    color: '#000',
+    marginBottom: 10,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'right',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#777',
   },
 });

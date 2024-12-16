@@ -17,10 +17,12 @@ export default function ScanQrScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [pumpModalVisible, setPumpModalVisible] = useState(false);
   const [fuelInput, setFuelInput] = useState('');
+  const [canShowScanButton, setCanShowScanButton] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const pumpAssistant = useSelector((state) => state.pumpAssistant);
+  console.log(pumpAssistant)
 
   useEffect(() => {
     (async () => {
@@ -52,27 +54,55 @@ export default function ScanQrScreen() {
 
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-
+  
     try {
       const vehicleQuery = query(
         collection(firestore, 'Vehicle'),
         where('vehicleCode', '==', data)
       );
       const querySnapshot = await getDocs(vehicleQuery);
-
+  
       if (!querySnapshot.empty) {
         const vehicleData = querySnapshot.docs[0].data();
         setVehicleDetails(vehicleData);
+        console.log(vehicleData)
+  
+        // Check Link collection for registration number and status
+        const linkQuery = query(
+          collection(firestore, 'Link'),
+          where('status', '==', true),
+          where('registrationNumber', '==', vehicleData.registrationNumber)
+        );
+        const linkSnapshot = await getDocs(linkQuery);
+        
+        if (!linkSnapshot.empty) {
+          const linkData = linkSnapshot.docs[0].data();
+          console.log(linkData);
+        
+          setCanShowScanButton(true); // Enable Pump Button
+          setModalVisible(true); // Show Modal
+          Alert.alert('Vehicle Validated', 'You can now pump fuel.');
+        } else {
+          setCanShowScanButton(false); // Disable Pump Button
+          setModalVisible(true); // Still show the modal with the message
+          setVehicleDetails(null); // Clear vehicle details if any
+          Alert.alert('Validation Failed', 'Driver is not linked to this vehicle.');
+        }
+        
+        
+  
         setModalVisible(true);
       } else {
         Alert.alert('Vehicle Not Found', 'No vehicle details found for this QR code.');
         setVehicleDetails({});
+        setCanShowScanButton(false);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch vehicle details. Please try again.');
       console.error(error);
     }
   };
+  
 
   const handlePump = () => {
     const remainingFuel = (vehicleDetails?.fuelVolume || 0) - (vehicleDetails?.pumpedVolume || 0);
@@ -95,18 +125,19 @@ export default function ScanQrScreen() {
   
     try {
       // Fetch Shed details
+      let shedDetails = null;
       const shedQuery = query(
         collection(firestore, 'Shed'),
-        where('Security_Key','==',pumpAssistant?.securityCode)
+        where('Security_Key', '==', pumpAssistant.securityCode)
       );
       const shedSnapshot = await getDocs(shedQuery);
   
-      let shedName = 'Unknown Shed'; // Default fallback
       if (!shedSnapshot.empty) {
-        const shedDetails = shedSnapshot.docs[0].data();
-        shedName = shedDetails?.shedName || 'Unknown Shed'; // Fallback if shed name is undefined
+        shedDetails = shedSnapshot.docs[0].data();
+        console.log(shedDetails);
       } else {
-        console.warn('No shed found for the given security code.');
+        Alert.alert('Error', 'No shed found for the given security code.');
+        return;
       }
   
       // Update Vehicle document
@@ -128,10 +159,12 @@ export default function ScanQrScreen() {
       const pumpRecord = {
         vehicleCode: vehicleDetails.vehicleCode,
         fuelPumped: fuelToPump,
-        shedName: shedName,
+        shedName: shedDetails.shedName, // Using shedDetails
+        shedType: shedDetails.shedType, // Using shedDetails
+        fuelType: vehicleDetails.fuelType,
+        company: vehicleDetails.company,
         assistantFirstName: pumpAssistant?.firstName || 'Unknown Assistant',
         assistantLastName: pumpAssistant?.lastName || 'Unknown Assistant',
-
         pumpTime: new Date().toISOString(),
       };
   
@@ -152,6 +185,7 @@ export default function ScanQrScreen() {
     }
   };
   
+  
 
   if (hasPermission === null) {
     return <Text>Requesting camera permission...</Text>;
@@ -164,12 +198,7 @@ export default function ScanQrScreen() {
   return (
     <View style={styles.container}>
       {/* Display Pump Assistant Details */}
-      <View style={styles.assistantDetails}>
-        <Text style={styles.assistantTitle}>Pump Assistant Details</Text>
-        <Text style={styles.assistantText}>Name: {pumpAssistant.firstName} {pumpAssistant.lastName}</Text>
-        <Text style={styles.assistantText}>Email: {pumpAssistant.email}</Text>
-        <Text style={styles.assistantText}>Security Code: {pumpAssistant.securityCode}</Text>
-      </View>
+     
       {!showScanner && (
         <Animated.View style={[styles.qrIconContainer, { transform: [{ scale: pulseAnim }] }]}>
           <MaterialCommunityIcons
@@ -208,7 +237,7 @@ export default function ScanQrScreen() {
 
       {/* Modal for Vehicle Details */}
      {/* Modal for Vehicle Details */}
-{modalVisible && vehicleDetails?.fuelVolume !== undefined && (
+     {modalVisible && (
   <Modal
     visible={modalVisible}
     animationType="slide"
@@ -225,63 +254,86 @@ export default function ScanQrScreen() {
           <MaterialCommunityIcons name="close" size={24} color="#000" />
         </TouchableOpacity>
 
-        <Text style={styles.modalTitle}>Vehicle Details</Text>
-        <Text style={styles.modalText}>Company: {vehicleDetails.company}</Text>
-        <Text style={styles.modalText}>Fuel Type: {vehicleDetails.fuelType}</Text>
-        <Text style={styles.modalText}>Fuel Limit: {vehicleDetails.fuelVolume}L</Text>
-        <Text style={styles.modalText}>Current Usage: {vehicleDetails.pumpedVolume}L</Text>
-        <Text style={styles.modalText}>
-          Remaining: {vehicleDetails.fuelVolume - vehicleDetails.pumpedVolume}L
-        </Text>
+        {/* Conditional Content */}
+        {vehicleDetails ? (
+          <>
+            {/* Vehicle Details */}
+            <Text style={styles.modalTitle}>Vehicle Details</Text>
+            <Text style={styles.modalText}>Company: {vehicleDetails.company}</Text>
+            <Text style={styles.modalText}>Fuel Type: {vehicleDetails.fuelType}</Text>
+            <Text style={styles.modalText}>Fuel Limit: {vehicleDetails.fuelVolume}L</Text>
+            <Text style={styles.modalText}>Current Usage: {vehicleDetails.pumpedVolume}L</Text>
+            <Text style={styles.modalText}>
+              Remaining: {vehicleDetails.fuelVolume - vehicleDetails.pumpedVolume}L
+            </Text>
 
-        {/* Bar Chart */}
-        <BarChart
-          data={{
-            labels: ["Fuel Limit", "Used", "Remaining"],
-            datasets: [
-              {
-                data: [
-                  vehicleDetails.fuelVolume,
-                  vehicleDetails.pumpedVolume,
-                  vehicleDetails.fuelVolume - vehicleDetails.pumpedVolume,
+            {/* Bar Chart */}
+            <BarChart
+              data={{
+                labels: ["Fuel Limit", "Used", "Remaining"],
+                datasets: [
+                  {
+                    data: [
+                      vehicleDetails.fuelVolume,
+                      vehicleDetails.pumpedVolume,
+                      vehicleDetails.fuelVolume - vehicleDetails.pumpedVolume,
+                    ],
+                  },
                 ],
-              },
-            ],
-          }}
-          width={width * 0.7}
-          height={350}
-          yAxisSuffix="L"
-          chartConfig={{
-            backgroundGradientFrom: "#fff",
-            backgroundGradientTo: "#f4f4f4",
-            color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          }}
-          style={{
-            marginVertical: 8,
-            borderRadius: 16,
-          }}
-        />
+              }}
+              width={width * 0.7}
+              height={350}
+              yAxisSuffix="L"
+              chartConfig={{
+                backgroundGradientFrom: "#fff",
+                backgroundGradientTo: "#f4f4f4",
+                color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              }}
+              style={{
+                marginVertical: 8,
+                borderRadius: 16,
+              }}
+            />
 
-        <View style={styles.modalButtons}>
-          <TouchableOpacity style={styles.modalButton} onPress={handlePump}>
-            <Text style={styles.modalButtonText}>Pump</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.modalButton, { backgroundColor: '#f44336' }]}
-            onPress={() => {
-              setScanned(false);
-              setVehicleDetails({});
-              setModalVisible(false);
-            }}
-          >
-            <Text style={styles.modalButtonText}>Scan Again</Text>
-          </TouchableOpacity>
-        </View>
+            {/* Modal Buttons */}
+            <View style={styles.modalButtons}>
+              {canShowScanButton && (
+                <TouchableOpacity style={styles.modalButton} onPress={handlePump}>
+                  <Text style={styles.modalButtonText}>Pump</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: '#f44336' }]}
+                onPress={() => {
+                  setScanned(false);
+                  setVehicleDetails(null);
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Scan Again</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorMessage}>Driver is not linked to this vehicle.</Text>
+            <TouchableOpacity
+              style={[styles.modalButton, { backgroundColor: '#f44336' }]}
+              onPress={() => {
+                setScanned(false);
+                setModalVisible(false);
+              }}
+            >
+              <Text style={styles.modalButtonText}>Scan Again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   </Modal>
 )}
+
 
 {/* Pump Modal */}
 {pumpModalVisible && (
@@ -339,6 +391,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#030E25',
     padding: 15,
     borderRadius: 10,
+    marginTop:30
   },
   scanButtonText: {
     color: '#fff',
@@ -423,3 +476,30 @@ const styles = StyleSheet.create({
   },
   
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

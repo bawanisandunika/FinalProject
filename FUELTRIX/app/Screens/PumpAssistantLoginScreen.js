@@ -14,6 +14,8 @@ export default function PumpAssistantLoginScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.5));
   const [buttonAnim] = useState(new Animated.Value(50));
+    const [showPassword, setShowPassword] = useState(false);
+  
 
   // Validation errors
   const [emailError, setEmailError] = useState('');
@@ -109,12 +111,19 @@ export default function PumpAssistantLoginScreen() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <FontAwesome5 name="arrow-circle-left" size={24} color="#030E25" />
+        <Text style={styles.backText}>Back</Text>
+      </TouchableOpacity>
+      <View style={styles.formContainer}>
+
       <Animated.View style={[styles.logoContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-        <FontAwesome5 name="gas-pump" size={100} color="#030E25" />
-        <Text style={styles.appName}>FuelTrix</Text>
+
+              <Text style={styles.appName1}>Optimize Your Fuel Management!</Text>
+        
+      <Text style={styles.appName}>FuelTrix Assistant Login</Text>
       </Animated.View>
 
-      <View style={styles.formContainer}>
         {/* Email Input */}
         <TextInput
           style={styles.input}
@@ -129,15 +138,19 @@ export default function PumpAssistantLoginScreen() {
 
         {/* Password Input */}
         <TextInput
-          style={styles.input}
-          placeholder="Password"
+  style={[styles.input, styles.passwordInput]}
+           placeholder="Password"
           placeholderTextColor="#aaa"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
+          secureTextEntry={!showPassword}
           autoCapitalize="none"
         />
+         <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.showPasswordButton}>
+            <FontAwesome5 name={showPassword ? "eye" : "eye-slash"} size={20} color="#888" />
+          </TouchableOpacity>
         {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+       
       </View>
 
       <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
@@ -154,25 +167,57 @@ export default function PumpAssistantLoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    flex: 0,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop:50
+
   },
-  logoContainer: {
+  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 20,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
   },
+  backText: {
+    fontSize: 18,
+    color: '#030E25',
+    marginLeft: 20,
+    fontFamily: 'Google-Bold',
+  },
+  
+  passwordContainer: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 50, // Ensures space for the eye icon
+  },
+  showPasswordButton: {
+    position: 'absolute',
+    right: 40, // Adjust the right margin to ensure proper alignment
+    top: '83%', // Center the icon vertically
+    transform: [{ translateY: -10 }], // Offset to center the icon correctly
+  },
+  
   appName: {
     fontSize: 32,
     fontFamily: 'Google-Bold',
     color: '#030E25',
-    marginTop: 20,
+    marginBottom:40
   },
   formContainer: {
     width: '100%',
-    paddingHorizontal: 30,
-    marginVertical: 30,
+    paddingHorizontal: 20,
+    marginVertical: 100,
+  },
+  appName1: {
+    fontSize: 20,
+    fontFamily: 'Google-Bold',
+    color: '#030E25',
+    margin: 0,
+    textAlign:'center'
+
   },
   input: {
     backgroundColor: '#F5F5F5',
