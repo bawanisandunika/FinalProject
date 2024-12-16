@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -9,10 +9,12 @@ import AddComplain from './DrawerScreens/AddComplain';
 import TopTabFuel from './DrawerScreens/TopTabFuel';
 import TopTabComplain from './DrawerScreens/toptabComplain';
 import DriverQrScanScreen from './DriverQrScanScreen';
+import { useNavigation } from '@react-navigation/native';
 
 const Drawer = createDrawerNavigator();
 
 function CustomHeader({ driverName, email, registrationNumber, status }) {
+  
   return (
     <View style={styles.headerContainer}>
       <Text style={styles.headerTitle}>Hello, {driverName}</Text>
@@ -29,17 +31,22 @@ function CustomHeader({ driverName, email, registrationNumber, status }) {
   );
 }
 
+
+
 // Custom Drawer Content
 function CustomDrawerContent(props) {
+  
   return (
     <DrawerContentScrollView {...props}>
       <View style={styles.drawerTitleContainer}>
         <Text style={styles.drawerTitle}>FuelTrix</Text>
       </View>
       <DrawerItemList {...props} />
+    
     </DrawerContentScrollView>
   );
 }
+
 
 export default function DriverDashboardScreen() {
   // Get driver data from Redux state
@@ -54,7 +61,7 @@ export default function DriverDashboardScreen() {
           drawerLabelStyle: { fontSize: 15, fontFamily: 'Google-Bold' },
           drawerActiveTintColor: '#030E25',
           drawerInactiveTintColor: '#888',
-          drawerContentContainerStyle: {backgroundColor:"#d9d9d9"},
+          drawerContentContainerStyle: { backgroundColor: "#d9d9d9" },
           headerTitleStyle: { fontFamily: 'Google-Bold' },
           headerRight: () => (
             <CustomHeader
@@ -97,11 +104,12 @@ const styles = StyleSheet.create({
     padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom:30,
+    marginBottom: 30,
   },
   drawerTitle: {
     fontSize: 18,
     color: 'white',
     fontFamily: 'Google-Bold',
   },
+
 });

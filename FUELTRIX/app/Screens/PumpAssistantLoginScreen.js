@@ -111,7 +111,7 @@ export default function PumpAssistantLoginScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home')}>
         <FontAwesome5 name="arrow-circle-left" size={24} color="#030E25" />
         <Text style={styles.backText}>Back</Text>
       </TouchableOpacity>

@@ -39,11 +39,11 @@ export default function WelcomeScreen() {
           source={require('./../../assets/welcome_image.jpg')} // Ensure correct path to your image
           style={styles.logoImage}
         />
-        <Text style={styles.appName}>FuelTrix</Text>
+        {/* <Text style={styles.appName}>FuelTrix</Text> */}
       </Animated.View>
-      <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
-        Efficient Fuel Issuing, Simplified.
-      </Animated.Text>
+      {/* <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
+      Manage your routes, monitor fuel usage, and enjoy seamless driving with the FuelTrix app
+            </Animated.Text> */}
 
       {/* Animated buttons */}
       <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
@@ -62,16 +62,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF', // Clean white background for a professional look
-    justifyContent: 'center',
     alignItems: 'center',
+    marginTop:50
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 0,
   },
   logoImage: {
-    width: 200, // Adjust the width based on the image size
-    height: 200, // Adjust the height based on the image size
+    width: 500, // Adjust the width based on the image size
+    height: 500, // Adjust the height based on the image size
     resizeMode: 'contain', // Ensures the image maintains aspect ratio
   },
   appName: {
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     position: 'absolute',
-    bottom: '10%', // Positioning the buttons from the bottom of the screen
+    bottom: '5%', // Positioning the buttons from the bottom of the screen
     width: '100%',
     paddingHorizontal: 20,
     justifyContent: 'center',

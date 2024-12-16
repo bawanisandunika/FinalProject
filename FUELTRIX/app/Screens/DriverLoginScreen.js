@@ -76,6 +76,9 @@ export default function DriverLoginScreen() {
         console.log("Dispatching to Redux:", driverPayload); // Debug line
 
         dispatch(setDriverData(driverPayload));
+        setEmail('');
+        setPassword('');
+
         navigation.navigate('DriverDashboard');
       } else {
         Alert.alert("Error", "Invalid email or password.");
@@ -89,7 +92,7 @@ export default function DriverLoginScreen() {
   return (
     <View style={styles.container}>
       {/* Back button */}
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home')}>
         <FontAwesome5 name="arrow-circle-left" size={24} color="#030E25" />
         <Text style={styles.backText}>Back</Text>
       </TouchableOpacity>
@@ -129,7 +132,7 @@ export default function DriverLoginScreen() {
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
       </Animated.View>
-      <Text style={{ marginTop: 100, fontFamily: 'Google', color: '#888' }}>Need help? Contact support at support@fueltrix.com.</Text>
+      <Text style={{ marginTop: 100, fontFamily: 'Google', color: '#888' }}>Need help? Contact support at trixfuel@gmail.com.</Text>
     </View>
   );
 }

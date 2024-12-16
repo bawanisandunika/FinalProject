@@ -3,8 +3,11 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'reac
 import { ScrollView } from 'react-native';
 import { doc, getDoc, query, where, collection, getDocs, addDoc } from "firebase/firestore"; // Added addDoc
 import { firestore } from '../../../firebaseConfig';  // Ensure correct Firebase config
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SignUpScreen() {
+  const navigation = useNavigation();
   const [securityCode, setSecurityCode] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -100,8 +103,13 @@ export default function SignUpScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-       <Text style={styles.title}>Sign Up with FuelTrix</Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <FontAwesome5 name="arrow-circle-left" size={24} color="#030E25" />
+        <Text style={styles.backText}>Back</Text>
+      </TouchableOpacity>
       <View style={styles.formContainer}>
+      <Text style={styles.title}>Sign Up with FuelTrix</Text>
+
         {/* Security Code */}
         <TextInput
           style={styles.input}
@@ -185,15 +193,28 @@ export default function SignUpScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flexGrow: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     paddingVertical: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 45,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backText: {
+    fontSize: 18,
+    color: '#030E25',
+    marginLeft: 20,
+    fontFamily: 'Google-Bold',
   },
   formContainer: {
     width: '90%',
     paddingHorizontal: 10,
+    marginTop:50
   },
   title: {
     marginVertical:20,
