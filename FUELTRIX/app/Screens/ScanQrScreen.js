@@ -6,10 +6,13 @@ import { collection, getDocs, query, where,doc, updateDoc, addDoc  } from "fireb
 import { firestore } from '../../firebaseConfig';
 import { BarChart } from "react-native-chart-kit";
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+
 
 const { width } = Dimensions.get("window");
 
 export default function ScanQrScreen() {
+  const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -194,6 +197,33 @@ export default function ScanQrScreen() {
   if (hasPermission === false) {
     return <Text>No access to camera</Text>;
   }
+  
+    const handleLogout = () => {
+      Alert.alert(
+        "Logout Confirmation", // Title
+        "Are you sure you want to logout?", // Message
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Logout",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                // Clear stored user data
+                // Navigate to Login Screen
+                navigation.replace('PumpLogin'); // Ensure 'Login' is the correct route name
+              } catch (error) {
+                console.error("Error logging out: ", error);
+              }
+            },
+          },
+        ]
+      );
+    };
+  
 
   return (
     <View style={styles.container}>
@@ -206,22 +236,31 @@ export default function ScanQrScreen() {
             size={200}
             color="#030E25"
           />
+             
         </Animated.View>
+        
       )}
 
       {!showScanner ? (
-        <Animated.View style={[styles.scanButtonContainer, { opacity: fadeAnim }]}>
+          <View style={{display:'flex', paddingHorizontal:80}}>
           <TouchableOpacity style={styles.scanButton} onPress={() => setShowScanner(true)}>
             <Text style={styles.scanButtonText}>Scan Here</Text>
           </TouchableOpacity>
-        </Animated.View>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </TouchableOpacity>
+      </View>
       ) : (
         <View style={styles.scannerContainer}>
+           
           <BarCodeScanner
             onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
             style={StyleSheet.absoluteFillObject}
           />
           {scanned && (
+                      <View style={{display:'flex', paddingHorizontal:80, position: 'absolute',
+                        bottom: 30, alignItems:'center',}}>
+
             <TouchableOpacity
               style={styles.rescanButton}
               onPress={() => {
@@ -231,6 +270,11 @@ export default function ScanQrScreen() {
             >
               <Text style={styles.rescanText}>Tap to Scan Again</Text>
             </TouchableOpacity>
+             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+             <Text style={styles.logoutButtonText}>Logout</Text>
+           </TouchableOpacity>
+           </View>
+
           )}
         </View>
       )}
@@ -390,8 +434,10 @@ const styles = StyleSheet.create({
   scanButton: {
     backgroundColor: '#030E25',
     padding: 15,
+    paddingHorizontal:50,
     borderRadius: 10,
-    marginTop:30
+    marginTop:80,
+
   },
   scanButtonText: {
     color: '#fff',
@@ -405,11 +451,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rescanButton: {
-    position: 'absolute',
-    bottom: 50,
-    backgroundColor: '#030E25',
     padding: 10,
-    borderRadius: 5,
+    paddingHorizontal:50,
+    borderRadius: 10,
+    marginTop:120,
+    backgroundColor: '#030E25',
+   
     fontFamily:'Google'
   },
   rescanText: {
@@ -473,6 +520,20 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     zIndex: 1,
+  },
+  logoutButton: {
+    padding: 10,
+    paddingHorizontal:50,
+    borderRadius: 10,
+    marginTop:20,
+    backgroundColor: '#f44336',
+   
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Google-Bold',
+    textAlign:'center',
   },
   
 });

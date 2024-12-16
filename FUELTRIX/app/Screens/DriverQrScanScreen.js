@@ -222,6 +222,7 @@ export default function DriverVehicleScanScreen() {
 >
   <Text style={styles.scanButtonText}>Scan Vehicle QR</Text>
 </TouchableOpacity>
+
         </Animated.View>
       ) : (
         showScanner && (
