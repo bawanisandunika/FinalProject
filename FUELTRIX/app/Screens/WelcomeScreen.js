@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Import navigation
+import { useNavigation } from '@react-navigation/native'; 
+import Icon from 'react-native-vector-icons/FontAwesome';
+// Import navigation
 
 export default function WelcomeScreen() {
   const navigation = useNavigation(); // Initialize navigation
@@ -41,9 +43,28 @@ export default function WelcomeScreen() {
         />
         {/* <Text style={styles.appName}>FuelTrix</Text> */}
       </Animated.View>
-      {/* <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
-      Manage your routes, monitor fuel usage, and enjoy seamless driving with the FuelTrix app
-            </Animated.Text> */}
+      <View style={{textAlign:'center', marginTop:20}} >
+      <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
+      <Icon name="check" size={22} color='#030E25' />
+       {'  '}Track Fuel Costs
+
+            </Animated.Text> 
+            <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
+            <Icon name="check" size={22} color='#030E25' />
+            {'  '}Fuel Efficiency Insights
+
+            </Animated.Text> 
+            <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
+     
+            <Icon name="check" size={22} color='#030E25' />
+            {'  '}Eco-Friendly
+            </Animated.Text> 
+            <Animated.Text style={[styles.tagline, { opacity: fadeAnim }]}>
+         
+            <Icon name="check" size={22} color='#030E25' />
+            {'  '}Vehicle Management 
+            </Animated.Text> 
+            </View>
 
       {/* Animated buttons */}
       <Animated.View style={[styles.buttonsContainer, { transform: [{ translateY: buttonAnim }] }]}>
@@ -61,18 +82,17 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // Clean white background for a professional look
     alignItems: 'center',
-    marginTop:50
+    marginTop:20
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 0,
+    marginTop:100,
   },
   logoImage: {
-    width: 500, // Adjust the width based on the image size
-    height: 500, // Adjust the height based on the image size
-    resizeMode: 'contain', // Ensures the image maintains aspect ratio
+    width: 300, 
+    height: 300, 
+    resizeMode: 'contain', 
   },
   appName: {
     fontSize: 36,
@@ -84,7 +104,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#030E25',
     fontFamily: 'Google',
-    marginBottom: 60,
+    marginTop: 10,
+   textAlign:'left'
   },
   buttonsContainer: {
     position: 'absolute',

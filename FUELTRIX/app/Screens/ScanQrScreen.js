@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 const { width } = Dimensions.get("window");
 
 export default function ScanQrScreen() {
+  const [linkData, setLinkData] = useState(null);
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
@@ -79,8 +80,9 @@ export default function ScanQrScreen() {
         const linkSnapshot = await getDocs(linkQuery);
         
         if (!linkSnapshot.empty) {
-          const linkData = linkSnapshot.docs[0].data();
-          console.log(linkData);
+          const fetchedLinkData = linkSnapshot.docs[0].data();
+          setLinkData(fetchedLinkData); 
+          console.log(fetchedLinkData)
         
           setCanShowScanButton(true); // Enable Pump Button
           setModalVisible(true); // Show Modal
@@ -160,6 +162,8 @@ export default function ScanQrScreen() {
   
       // Create Pump record
       const pumpRecord = {
+        vehicleNumber: vehicleDetails.registrationNumber,
+
         vehicleCode: vehicleDetails.vehicleCode,
         fuelPumped: fuelToPump,
         shedName: shedDetails.shedName, // Using shedDetails
@@ -168,6 +172,7 @@ export default function ScanQrScreen() {
         company: vehicleDetails.company,
         assistantFirstName: pumpAssistant?.firstName || 'Unknown Assistant',
         assistantLastName: pumpAssistant?.lastName || 'Unknown Assistant',
+        email: linkData?.email || 'Unknown Email', // Access linkData from state
         pumpTime: new Date().toISOString(),
       };
   
