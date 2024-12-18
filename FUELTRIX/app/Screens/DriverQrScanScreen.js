@@ -67,7 +67,7 @@ export default function DriverVehicleScanScreen() {
         setVehicleDetails(vehicleData);
         setShowScanner(false);
   
-        Alert.alert("Vehicle QR Scanned!", `Vehicle ID: ${data}`, [
+        Alert.alert("Vehicle QR Scanned!", `Welcome`, [
           { text: "OK", onPress: () => setScanned(false) },
         ]);
       } else {
@@ -221,7 +221,50 @@ export default function DriverVehicleScanScreen() {
   }}
 >
   <Text style={styles.scanButtonText}>Scan Vehicle QR</Text>
+
 </TouchableOpacity>
+<TouchableOpacity
+  style={styles.scanButton}
+  onPress={async () => {
+    if (driverData.status) {
+      // Show alert to confirm link removal
+      Alert.alert(
+        "Do you want to Remove Link?",
+        "Are you sure you want to remove the linked vehicle?", // Alert message (optional)
+        [
+          {
+            text: "Remove Link",
+            onPress: handleRemoveLink, // Call handleRemoveLink function
+          },
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+        ]
+      );
+    } else {
+      // If no vehicle is linked, display appropriate message
+      Alert.alert(
+        "No Linked Vehicle",
+        "You currently don't have a linked vehicle.",
+        [
+          {
+            text: "Ok",
+            style: "default",
+          },
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+        ]
+      );
+    }
+  }}
+>
+  <Text style={styles.scanButtonText}>Remove Link</Text>
+</TouchableOpacity>
+
+
 
         </Animated.View>
       ) : (

@@ -204,7 +204,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontFamily: 'Google-Bold',
     color: '#030E25',
-    marginBottom:40
+    marginBottom:40,
+    textAlign:'center',
   },
   formContainer: {
     width: '100%',

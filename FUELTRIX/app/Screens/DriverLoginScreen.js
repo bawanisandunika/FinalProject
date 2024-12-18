@@ -132,7 +132,7 @@ export default function DriverLoginScreen() {
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
       </Animated.View>
-      <Text style={{ marginTop: 100, fontFamily: 'Google', color: '#888' }}>Need help? Contact support at trixfuel@gmail.com.</Text>
+      <Text style={{ marginTop: 180, fontFamily: 'Google', color: '#888' }}>Need help? Contact support at trixfuel@gmail.com.</Text>
     </View>
   );
 }
@@ -140,7 +140,6 @@ export default function DriverLoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 0,
-    backgroundColor: '#eeeeee',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 50,

@@ -42,10 +42,13 @@ export default function FuelRequests() {
   // Render individual fuel request item
   const renderRequestItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.requestDetails}>Request ID: {item.id}</Text>
+      <Text style={styles.requestDetails}>Reason: {item.reason}</Text>
       <Text style={styles.email}>Email: {item.email}</Text>
-      <Text style={styles.amount}>Fuel Amount: {item.amount}L</Text>
-      <Text style={styles.timestamp}>{new Date(item.createdAt).toLocaleString()}</Text>
+
+      <Text style={styles.amount}>Fuel Amount: {item.requestVolume}L</Text>
+      <Text style={styles.timestamp}>
+  {item.requestedAt?.toDate().toLocaleString()}
+</Text>
     </View>
   );
 
