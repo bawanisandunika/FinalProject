@@ -77,9 +77,9 @@ export default function SignUpScreen() {
           where('Security_Key', '==', securityCode),
           where('Approved_status', '==', true)
         );
-
+  
         const shedSnapshot = await getDocs(shedQuery);
-
+  
         if (!shedSnapshot.empty) {
           // Security code is valid
           await addDoc(collection(firestore, 'PumpAssistant'), {
@@ -89,7 +89,13 @@ export default function SignUpScreen() {
             email,
             password, // Use Firebase Authentication in real apps for password handling
           });
-          Alert.alert('Registration Successful', 'Welcome to FuelTrix!');
+  
+          Alert.alert('Registration Successful', 'Welcome to FuelTrix!', [
+            {
+              text: 'OK',
+              onPress: () => navigation.navigate('PumpLogin'), // Navigate to the Login screen
+            },
+          ]);
         } else {
           // Invalid security code or shed not approved
           Alert.alert('Invalid Security Code', 'Security Code is invalid or Shed is not approved.');
