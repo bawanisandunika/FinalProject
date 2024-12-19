@@ -46,6 +46,8 @@ export default function FuelRequests() {
       <Text style={styles.email}>Email: {item.email}</Text>
 
       <Text style={styles.amount}>Fuel Amount: {item.requestVolume}L</Text>
+      <Text style={styles.amount}>Status: {item.approvedStatus}</Text>
+
       <Text style={styles.timestamp}>
   {item.requestedAt?.toDate().toLocaleString()}
 </Text>
